@@ -305,99 +305,43 @@ const upload = multer({
 
 // Redis Helper Functions
 class RedisHelper {
-    // Check if Redis is available
-    static isRedisAvailable() {
-        return redisClient && redisClient.isReady;
-    }
-    
-    // Handle Redis unavailable scenarios
-    static handleNoRedis(operation) {
-        log('warn', `Redis operation '${operation}' skipped - Redis not available`);
-        // Return appropriate fallback values
-        switch (operation) {
-            case 'createUser':
-            case 'createDonation':
-            case 'createPickup':
-                return { id: uuidv4(), created: true, error: 'Redis unavailable - data not persisted' };
-            case 'getUsers':
-            case 'getDonations':
-                return [];
-            case 'getUser':
-            case 'getDonation':
-            case 'getPickup':
-                return null;
-            case 'updateUser':
-            case 'updateDonation':
-            case 'updatePickup':
-                return { updated: false, error: 'Redis unavailable' };
-            default:
-                return null;
-        }
-    }
-    
     // Users
     static async createUser(userData) {
-        if (!this.isRedisAvailable()) {
-            return this.handleNoRedis('createUser');
+        const userId = uuidv4();
+        const user = {
+            id: userId,
+            ...userData,
+            isApproved: userData.isApproved ? 'true' : 'false', // Convert boolean to string
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Convert all values to strings for Redis
+        const userForRedis = {};
+        Object.keys(user).forEach(key => {
+            userForRedis[key] = String(user[key]);
+        });
+        
+        await redisClient.hSet(`user:${userId}`, userForRedis);
+        await redisClient.sAdd('users:all', userId);
+        await redisClient.hSet('users:email', userData.email, userId);
+        await redisClient.hSet('users:username', userData.username, userId);
+        
+        if (userData.isApproved !== true) {
+            await redisClient.sAdd('users:pending', userId);
         }
         
-        try {
-            const userId = uuidv4();
-            const user = {
-                id: userId,
-                ...userData,
-                isApproved: userData.isApproved ? 'true' : 'false',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            const userForRedis = {};
-            Object.keys(user).forEach(key => {
-                userForRedis[key] = String(user[key]);
-            });
-            
-            await redisClient.hSet(`user:${userId}`, userForRedis);
-            await redisClient.sAdd('users:all', userId);
-            await redisClient.hSet('users:email', userData.email, userId);
-            await redisClient.hSet('users:username', userData.username, userId);
-            
-            if (userData.isApproved !== true) {
-                await redisClient.sAdd('users:pending', userId);
-            }
-            
-            return { ...user, _id: userId };
-        } catch (error) {
-            log('error', 'Error creating user in Redis', { error: error.message });
-            return this.handleNoRedis('createUser');
-        }
+        return { ...user, _id: userId };
     }
     
     static async getUserById(userId) {
-        if (!this.isRedisAvailable()) {
-            return this.handleNoRedis('getUser');
-        }
-        
-        try {
-            const user = await redisClient.hGetAll(`user:${userId}`);
-            return Object.keys(user).length ? { ...user, _id: userId } : null;
-        } catch (error) {
-            log('error', 'Error getting user by ID from Redis', { error: error.message });
-            return null;
-        }
+        const user = await redisClient.hGetAll(`user:${userId}`);
+        return Object.keys(user).length ? { ...user, _id: userId } : null;
     }
     
     static async getUserByEmail(email) {
-        if (!this.isRedisAvailable()) {
-            return this.handleNoRedis('getUser');
-        }
-        
-        try {
-            const userId = await redisClient.hGet('users:email', email);
-            return userId ? await this.getUserById(userId) : null;
-        } catch (error) {
-            log('error', 'Error getting user by email from Redis', { error: error.message });
-            return null;
-        }
+        const userId = await redisClient.hGet('users:email', email);
+        return userId ? await this.getUserById(userId) : null;
     }
     
     static async getUserByUsername(username) {
