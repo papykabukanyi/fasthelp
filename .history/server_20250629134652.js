@@ -42,42 +42,6 @@ app.get('/test', (req, res) => {
     res.status(200).send('Server Running');
 });
 
-// Status endpoint for debugging (separate from main site)
-app.get('/status', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`📊 STATUS ENDPOINT REQUESTED at ${timestamp}`);
-    
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Fast Help - Server Status</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 50px auto; max-width: 600px; }
-        .status { color: green; font-size: 24px; font-weight: bold; margin: 20px 0; }
-        .info { color: #666; margin: 10px 0; }
-        .links { margin: 30px 0; }
-        .links a { margin: 0 10px; padding: 5px 10px; background: #007bff; color: white; text-decoration: none; border-radius: 3px; }
-    </style>
-</head>
-<body>
-    <h1 class="status">✅ Fast Help Server Status</h1>
-    <div class="info">Port: ${PORT}</div>
-    <div class="info">Environment: ${NODE_ENV}</div>
-    <div class="info">Time: ${timestamp}</div>
-    <div class="links">
-        <a href="/">Main Website</a>
-        <a href="/health">Health Check</a>
-        <a href="/ping">Ping Test</a>
-        <a href="/admin.html">Admin Panel</a>
-    </div>
-    <div class="info">🚀 Server is operational!</div>
-</body>
-</html>`;
-    
-    res.set('Content-Type', 'text/html');
-    res.status(200).send(html);
-});
-
 // Main website root route - serve the actual Fast Help application
 app.get('/', (req, res) => {
     console.log(`🏠 MAIN WEBSITE REQUESTED at ${new Date().toISOString()}`);
@@ -1491,7 +1455,11 @@ app.delete('/api/admin/donations/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Additional Routes (root route already defined at top)
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.get('/donor-signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'donor-signup.html'));
 });
