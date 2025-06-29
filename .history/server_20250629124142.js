@@ -1354,15 +1354,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Health check endpoint for Railway and monitoring (simple, no dependencies)
+// Health check endpoint for Railway and monitoring
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0',
-        message: 'Fast Help server is running'
+        version: require('./package.json').version || '1.0.0'
     });
 });
 
@@ -1448,12 +1447,6 @@ app.use((error, req, res, next) => {
 // Create default admin user on first run
 async function createDefaultAdmin() {
     try {
-        // Skip if Redis is not available
-        if (!redisClient || !redisClient.isReady) {
-            log('info', 'Skipping admin creation - Redis not available');
-            return;
-        }
-        
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@fasthelp.com';
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
         
@@ -1479,7 +1472,7 @@ async function createDefaultAdmin() {
             }
         }
     } catch (error) {
-        log('error', 'Error creating default admin - continuing without admin user', { error: error.message });
+        log('error', 'Error creating default admin', { error: error.message });
     }
 }
 

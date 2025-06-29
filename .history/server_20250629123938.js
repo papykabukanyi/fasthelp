@@ -477,21 +477,6 @@ class RedisHelper {
     }
 }
 
-// Helper function to safely execute Redis operations
-async function safeRedisOperation(operation, fallback = null) {
-    if (!redisClient || !redisClient.isReady) {
-        log('warn', 'Redis operation skipped - client not available');
-        return fallback;
-    }
-    
-    try {
-        return await operation();
-    } catch (error) {
-        log('error', 'Redis operation failed', { error: error.message });
-        return fallback;
-    }
-}
-
 // Middleware for authentication
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -1354,44 +1339,32 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Health check endpoint for Railway and monitoring (simple, no dependencies)
+// Health check endpoint for Railway and monitoring
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        version: '1.0.0',
-        message: 'Fast Help server is running'
+        version: require('./package.json').version || '1.0.0'
     });
 });
 
 // API health check
 app.get('/api/health', async (req, res) => {
     try {
-        let redisStatus = 'disconnected';
-        
-        // Check Redis only if client exists and is connected
-        if (redisClient && redisClient.isReady) {
-            try {
-                const pingResult = await redisClient.ping();
-                redisStatus = pingResult === 'PONG' ? 'connected' : 'disconnected';
-            } catch (redisErr) {
-                log('warn', 'Redis ping failed in health check', { error: redisErr.message });
-                redisStatus = 'error';
-            }
-        }
+        // Test Redis connection
+        const redisStatus = await redisClient.ping();
         
         res.status(200).json({
             status: 'healthy',
             services: {
-                redis: redisStatus,
+                redis: redisStatus === 'PONG' ? 'connected' : 'disconnected',
                 database: 'connected'
             },
             timestamp: new Date().toISOString()
         });
     } catch (error) {
-        log('error', 'Health check error', { error: error.message });
         res.status(503).json({
             status: 'unhealthy',
             error: 'Service unavailable',
@@ -1448,12 +1421,6 @@ app.use((error, req, res, next) => {
 // Create default admin user on first run
 async function createDefaultAdmin() {
     try {
-        // Skip if Redis is not available
-        if (!redisClient || !redisClient.isReady) {
-            log('info', 'Skipping admin creation - Redis not available');
-            return;
-        }
-        
         const adminEmail = process.env.ADMIN_EMAIL || 'admin@fasthelp.com';
         const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
         
@@ -1479,43 +1446,17 @@ async function createDefaultAdmin() {
             }
         }
     } catch (error) {
-        log('error', 'Error creating default admin - continuing without admin user', { error: error.message });
+        log('error', 'Error creating default admin', { error: error.message });
     }
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     log('info', `Fast Help server running on port ${PORT}`, {
         port: PORT,
         environment: NODE_ENV,
-        healthCheck: `http://0.0.0.0:${PORT}/health`,
-        timestamp: new Date().toISOString()
+        healthCheck: `/health`
     });
-    
-    // Log successful server start
-    console.log(`✅ SERVER STARTED SUCCESSFULLY ON PORT ${PORT}`);
-    console.log(`✅ Health check available at: http://0.0.0.0:${PORT}/health`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);
-}).on('error', (err) => {
-    log('error', 'Server failed to start', { error: err.message, port: PORT });
-    console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}:`, err.message);
-    process.exit(1);
-});
-
-// Handle process termination gracefully
-process.on('SIGINT', () => {
-    log('info', 'Shutting down server gracefully...');
-    if (redisClient && redisClient.isReady) {
-        redisClient.quit();
-    }
-    process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-    log('info', 'Shutting down server gracefully...');
-    if (redisClient && redisClient.isReady) {
-        redisClient.quit();
-    }
-    process.exit(0);
 });
