@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Confirmation - Fast Help</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Dark mode variables */
+        body.dark-mode {
+            --bg-color: #1a1a2e;
+            --surface-color: #16213e;
+            --text-color: #e2e8f0;
+            --border-color: #2d3748;
+            --accent-color: #667eea;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        body.dark-mode .theme-toggle {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .delivery-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: var(--surface-color, white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+        
+        body.dark-mode .delivery-container {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .delivery-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .delivery-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .delivery-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .encouragement-banner {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #0ea5e9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        body.dark-mode .encouragement-banner {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
+            border-left-color: #0ea5e9;
+        }
+        
+        .encouragement-banner p {
+            margin: 0;
+            color: var(--text-color, #0f172a);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .delivery-form {
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-color, #374151);
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color, #e5e7eb);
+            background: var(--surface-color, white);
+            color: var(--text-color, #1f2937);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #4f46e5;
+            background: #f8fafc;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #4f46e5;
+            background: #eff6ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .image-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+        
+        .thank-you-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+    
+    <div class="hero-section" style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem 1rem;">
+        
+        <div class="delivery-container">
+            <div class="delivery-header">
+                <h1><i class="fas fa-heart"></i> Amazing! You're Making a Difference</h1>
+                <p>Help complete the circle of caring by sharing where this donation found its home</p>
+            </div>
+            
+            <div class="encouragement-banner">
+                <p><strong>🌟 You're a community hero!</strong> By delivering this donation, you've connected someone in need with resources that matter. Letting others know where items go helps build trust and shows the real impact of our Austin caring network. Every delivery makes our community stronger! 💝</p>
+            </div>
+
+            <div id="delivery-form-container" class="delivery-form">
+                <form id="delivery-confirmation-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="delivery-location">
+                            <i class="fas fa-map-marker-alt"></i> Where did this donation find its home? *
+                        </label>
+                        <input type="text" id="delivery-location" name="deliveryLocation" 
+                               placeholder="e.g., Downtown shelter, Community center, Family in need" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="delivered-to">
+                            <i class="fas fa-users"></i> Who received this kindness? (Optional)
+                        </label>
+                        <input type="text" id="delivered-to" name="deliveredTo" 
+                               placeholder="Person or organization name (if comfortable sharing)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="delivery-notes">
+                            <i class="fas fa-heart"></i> Share the impact (Optional)
+                        </label>
+                        <textarea id="delivery-notes" name="deliveryNotes" 
+                                  placeholder="How did this donation make a difference? Share the joy! (Optional)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-camera"></i> Capture the moment (Optional)
+                        </label>
+                        <div class="file-upload-area" onclick="document.getElementById('delivery-image').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #6b7280; margin-bottom: 1rem;"></i>
+                            <p>Share a photo of the delivery impact</p>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Optional - helps our community see the real difference we're making together</p>
+                        </div>
+                        <input type="file" id="delivery-image" name="deliveryImage" 
+                               class="file-input" accept="image/*" onchange="previewImage(this)">
+                        <div id="image-preview" class="image-preview"></div>
+                    </div>
+
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0; color: #92400e; font-size: 14px;">
+                            💡 <strong>Privacy tip:</strong> Only share what you're comfortable with. Your confirmation helps other community members see that donations really do reach those who need them!
+                        </p>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-heart"></i> Complete the Circle of Caring
+                    </button>
+                </form>
+            </div>
+
+            <div id="success-message" class="success-message">
+                <div class="success-icon">
+                    <i class="fas fa-party-horn"></i>
+                </div>
+                <h2>🎉 You're an Austin Hero!</h2>
+                <p>Your kindness has been confirmed and is now part of our community's caring story. Thank you for making Austin more compassionate, one delivery at a time! 💝</p>
+                <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">
+                    Your delivery helps others see the real impact of community generosity. Together, we're building a more caring Austin! 🌟
+                </p>
+                
+                <div class="thank-you-card">
+                    <h3><i class="fas fa-hands-helping"></i> You're Making a Difference!</h3>
+                    <p>Your act of kindness helps build a stronger, more caring community. Thank you for being part of Fast Help!</p>
+                </div>
+                
+                <button onclick="window.location.href='/'" class="submit-btn" style="margin-top: 2rem;">
+                    <i class="fas fa-home"></i> Return to Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Dark mode functionality
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                icon.className = 'fas fa-sun';
+            } else {
+                icon.className = 'fas fa-moon';
+            }
+        });
+
+        // Delivery confirmation functionality
+        class DeliveryConfirmation {
+            constructor() {
+                this.trackingId = this.getTrackingIdFromUrl();
+                this.init();
+            }
+
+            getTrackingIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('tracking');
+            }
+
+            init() {
+                if (!this.trackingId) {
+                    FastHelpUtils.showNotification('Invalid tracking link', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                    return;
+                }
+
+                this.setupEventListeners();
+                this.setupDragAndDrop();
+            }
+
+            setupEventListeners() {
+                document.getElementById('delivery-confirmation-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitDeliveryConfirmation();
+                });
+            }
+
+            setupDragAndDrop() {
+                const uploadArea = document.querySelector('.file-upload-area');
+                
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, () => {
+                        uploadArea.classList.add('dragover');
+                    });
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, () => {
+                        uploadArea.classList.remove('dragover');
+                    });
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        document.getElementById('delivery-image').files = files;
+                        previewImage(document.getElementById('delivery-image'));
+                    }
+                });
+            }
+
+            async submitDeliveryConfirmation() {
+                const form = document.getElementById('delivery-confirmation-form');
+                const formData = new FormData(form);
+
+                try {
+                    FastHelpUtils.showLoading(true);
+
+                    const response = await fetch(`/api/delivery-confirmation/${this.trackingId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to confirm delivery');
+                    }
+
+                    const result = await response.json();
+                    
+                    FastHelpUtils.showLoading(false);
+                    this.showSuccessMessage();
+
+                } catch (error) {
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification(error.message || 'Error confirming delivery', 'error');
+                }
+            }
+
+            showSuccessMessage() {
+                document.getElementById('delivery-form-container').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+            }
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById('image-preview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Delivery photo preview">
+                        <p style="margin-top: 0.5rem; color: #6b7280; font-size: 0.875rem;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i> 
+                            Photo selected: ${input.files[0].name}
+                        </p>
+                    `;
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.innerHTML = '';
+            }
+        }
+
+        // Initialize delivery confirmation
+        const deliveryConfirmation = new DeliveryConfirmation();
+    </script>
+</body>
+</html>

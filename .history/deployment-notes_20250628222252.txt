@@ -1,0 +1,96 @@
+FAST HELP - DEPLOYMENT INSTRUCTIONS
+=====================================
+
+IMPORTANT: This file contains sensitive deployment information and should NOT be committed to GitHub.
+
+PROJECT OVERVIEW:
+- Node.js web application for community food and essentials sharing
+- Uses Redis for data storage (not MongoDB)
+- Frontend uses Leaflet.js for mapping (OpenStreetMap)
+- Email notifications via Nodemailer
+- User authentication with JWT
+
+REQUIRED ENVIRONMENT VARIABLES:
+Create a .env file with these variables (sample values shown):
+
+REDIS_URL=redis://default:your-redis-password@your-redis-host:port
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+EMAIL_FROM=noreply@yourdomain.com
+PORT=3000
+
+DEPLOYMENT STEPS:
+
+1. SERVER SETUP:
+   - Install Node.js 18+ and npm
+   - Clone the repository
+   - Run: npm install
+
+2. ENVIRONMENT SETUP:
+   - Create .env file with your actual values
+   - Ensure Redis server is running and accessible
+   - Configure SMTP settings via admin panel after deployment
+
+3. REDIS SETUP:
+   - Get Redis instance (Railway, Heroku Redis, AWS ElastiCache, etc.)
+   - Update REDIS_URL in .env with your connection string
+   - Default admin user will be created automatically:
+     Email: admin@fasthelp.com
+     Password: admin123
+     (CHANGE THIS IMMEDIATELY AFTER FIRST LOGIN)
+
+4. FILE UPLOAD DIRECTORY:
+   - Ensure public/uploads/ directory exists
+   - Set proper permissions for file uploads
+
+5. DEPLOYMENT:
+   - For development: npm start
+   - For production: Use PM2 or similar process manager
+     npm install -g pm2
+     pm2 start server.js --name "fasthelp"
+
+6. POST-DEPLOYMENT:
+   - Access /admin to configure SMTP settings
+   - Test user registration and email notifications
+   - Create test donations to verify map functionality
+   - Update default admin credentials
+
+FEATURES:
+- User location detection and map display
+- List/Map view toggle with radius filtering
+- Dark mode support
+- Donation posting with image upload
+- Email notifications for pickups and deliveries
+- Admin panel for user approval and SMTP config
+- Mobile responsive design
+
+SECURITY NOTES:
+- All secrets are in environment variables
+- JWT tokens expire in 7 days
+- File upload limited to images, 5MB max
+- Rate limiting on API endpoints
+- HTTPS recommended for production
+
+ADMIN FUNCTIONS:
+- User approval (users need approval to post donations)
+- SMTP configuration
+- View platform statistics
+
+DATABASE STRUCTURE (Redis):
+- Users: user:{id} hash + indexes
+- Donations: donation:{id} hash + geospatial index
+- Pickups: pickup:{id} hash for tracking
+- Settings: setting:{type} hash for configuration
+
+TROUBLESHOOTING:
+- Check Redis connection if app fails to start
+- Verify environment variables are loaded
+- Check logs for detailed error messages
+- Ensure proper file permissions for uploads directory
+
+MAINTENANCE:
+- Monitor Redis memory usage
+- Regular backups of Redis data
+- Update dependencies regularly
+- Monitor uploaded file storage
+
+For support: Check server logs and console output for detailed error information.

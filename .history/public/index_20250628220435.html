@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Help - Find Food & Essential Items Near You</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-heart"></i>
+                <h1>Fast Help</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="#about" class="nav-link">About</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="/donor-signup" class="nav-link donor-btn">Become a Donor</a>
+                <button class="donate-btn" onclick="openDonateModal()">
+                    <i class="fas fa-donate"></i>
+                    Donate to Cause
+                </button>
+                <button id="theme-toggle" class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </nav>
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2>Find Help Around You</h2>
+            <p>Discover food donations, essential items, and support from your community</p>
+            <div class="location-status">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="location-text">Getting your location...</span>
+                <button id="enable-location" class="location-btn" style="display: none;">
+                    <i class="fas fa-crosshairs"></i> Enable Location
+                </button>
+            </div>
+            
+            <!-- View Controls -->
+            <div class="view-controls">
+                <div class="view-toggle">
+                    <button id="map-view-btn" class="view-btn active" data-view="map">
+                        <i class="fas fa-map"></i> Map
+                    </button>
+                    <button id="list-view-btn" class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i> List
+                    </button>
+                </div>
+                <div class="radius-selector">
+                    <label for="radius-select">
+                        <i class="fas fa-search-location"></i> Radius:
+                    </label>
+                    <select id="radius-select">
+                        <option value="1">1 km</option>
+                        <option value="5" selected>5 km</option>
+                        <option value="10">10 km</option>
+                        <option value="25">25 km</option>
+                        <option value="50">50 km</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Container -->
+    <div class="map-container">
+        <div class="map-controls">
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-globe"></i>
+                    All Items
+                </button>
+                <button class="filter-btn" data-filter="cooked">
+                    <i class="fas fa-utensils"></i>
+                    Cooked Food
+                </button>
+                <button class="filter-btn" data-filter="uncooked">
+                    <i class="fas fa-apple-alt"></i>
+                    Raw Food
+                </button>
+                <button class="filter-btn" data-filter="clothing">
+                    <i class="fas fa-tshirt"></i>
+                    Clothing
+                </button>
+                <button class="filter-btn" data-filter="bedding">
+                    <i class="fas fa-bed"></i>
+                    Bedding
+                </button>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color available"></div>
+                    <span>Available</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color claimed"></div>
+                    <span>Recently Claimed</span>
+                </div>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Info Sections -->
+    <section id="about" class="info-section">
+        <div class="container">
+            <div class="info-content">
+                <h2>About Fast Help</h2>
+                <p>Fast Help connects generous community members with those in need. Our platform makes it easy to share extra food, clothing, and essential items with people who need them most.</p>
+                <div class="stats">
+                    <div class="stat">
+                        <i class="fas fa-users"></i>
+                        <h3 id="user-count">1,000+</h3>
+                        <p>Community Members</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-gift"></i>
+                        <h3 id="donation-count">5,000+</h3>
+                        <p>Items Shared</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h3 id="location-count">50+</h3>
+                        <p>Active Locations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="info-section alt-bg">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Find</h3>
+                    <p>Browse the map to find available items near you</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>Navigate</h3>
+                    <p>Get directions to the drop-off location</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3>Help</h3>
+                    <p>Pick up what you need and help others in your community</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donation Modal -->
+    <div id="donate-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDonateModal()">&times;</span>
+            <h2>Support Fast Help</h2>
+            <p>Help us maintain and improve our platform to serve more communities</p>
+            <div class="donation-options">
+                <button class="donation-btn" onclick="donate(5)">$5</button>
+                <button class="donation-btn" onclick="donate(10)">$10</button>
+                <button class="donation-btn" onclick="donate(25)">$25</button>
+                <button class="donation-btn" onclick="donate(50)">$50</button>
+            </div>
+            <div class="custom-donation">
+                <input type="number" id="custom-amount" placeholder="Enter custom amount" min="1">
+                <button onclick="donateCustom()">Donate Custom Amount</button>
+            </div>
+            <p class="donation-note">
+                <i class="fas fa-info-circle"></i>
+                This is a demo. In production, this would integrate with a payment processor.
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Fast Help</h3>
+                    <p>Connecting communities through kindness</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="/donor-signup">Become a Donor</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: hello@fasthelp.org</p>
+                    <p>Phone: (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Fast Help. Made with ❤️ for community.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <script src="js/map.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard - Fast Help</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="/">
+                    <i class="fas fa-heart"></i>
+                    <h1>Fast Help</h1>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-map"></i>
+                    View Map
+                </a>
+                <div class="user-menu">
+                    <button class="user-btn" onclick="toggleUserMenu()">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="username-display">User</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <a href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="#create-donation" class="nav-item" onclick="showSection('create-donation')">
+                    <i class="fas fa-plus-circle"></i>
+                    Create Donation
+                </a>
+                <a href="#my-donations" class="nav-item" onclick="showSection('my-donations')">
+                    <i class="fas fa-gift"></i>
+                    My Donations
+                </a>
+                <a href="#profile" class="nav-item" onclick="showSection('profile')">
+                    <i class="fas fa-user-cog"></i>
+                    Profile
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <p>Welcome back! Here's your donation activity overview.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-donations">0</h3>
+                            <p>Total Donations</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="active-donations">0</h3>
+                            <p>Active Donations</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="people-helped">0</h3>
+                            <p>People Helped</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="impact-score">100</h3>
+                            <p>Impact Score</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-donations" class="activity-list">
+                        <!-- Recent donations will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Create Donation Section -->
+            <section id="create-donation" class="content-section">
+                <div class="section-header">
+                    <h2>Create New Donation</h2>
+                    <p>Share your extra food or essentials with the community.</p>
+                </div>
+
+                <form id="donation-form" class="donation-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">
+                                <i class="fas fa-tag"></i>
+                                Title
+                            </label>
+                            <input type="text" id="title" name="title" placeholder="e.g., Fresh vegetables, Winter coats" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">
+                                <i class="fas fa-list"></i>
+                                Category
+                            </label>
+                            <select id="category" name="category" required>
+                                <option value="">Select category</option>
+                                <option value="cooked">Cooked Food</option>
+                                <option value="uncooked">Raw/Uncooked Food</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="bedding">Bedding & Linens</option>
+                                <option value="other">Other Essentials</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">
+                            <i class="fas fa-align-left"></i>
+                            Description
+                        </label>
+                        <textarea id="description" name="description" rows="4" 
+                                  placeholder="Describe the items, quantity, condition, expiry dates, etc." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">
+                            <i class="fas fa-camera"></i>
+                            Photo (Optional)
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(this)">
+                            <div class="file-upload-display">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Click to upload or drag image here</span>
+                            </div>
+                            <div id="image-preview" class="image-preview" style="display: none;">
+                                <img id="preview-img" src="" alt="Preview">
+                                <button type="button" onclick="removeImage()" class="remove-image">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="location-section">
+                        <h3>
+                            <i class="fas fa-map-marker-alt"></i>
+                            Drop-off Location
+                        </h3>
+                        
+                        <div class="location-options">
+                            <label class="radio-option">
+                                <input type="radio" name="location-type" value="current" checked>
+                                <span class="radio-custom"></span>
+                                Use my current location
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="location-type" value="address">
+                                <span class="radio-custom"></span>
+                                Enter specific address
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="location-type" value="map">
+                                <span class="radio-custom"></span>
+                                Select on map
+                            </label>
+                        </div>
+
+                        <div id="address-input" class="form-group" style="display: none;">
+                            <label for="address">
+                                <i class="fas fa-home"></i>
+                                Address
+                            </label>
+                            <input type="text" id="address" name="address" placeholder="Enter full address">
+                        </div>
+
+                        <div id="map-selector" style="display: none;">
+                            <div id="location-map" style="height: 300px; border-radius: 8px;"></div>
+                            <p class="map-instructions">Click on the map to select drop-off location</p>
+                        </div>
+
+                        <div class="current-location">
+                            <i class="fas fa-crosshairs"></i>
+                            <span id="current-location-text">Getting current location...</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="resetForm()">
+                            <i class="fas fa-undo"></i>
+                            Reset
+                        </button>
+                        <button type="submit" class="btn primary">
+                            <i class="fas fa-plus"></i>
+                            Create Donation
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- My Donations Section -->
+            <section id="my-donations" class="content-section">
+                <div class="section-header">
+                    <h2>My Donations</h2>
+                    <p>Manage your active and past donations.</p>
+                </div>
+
+                <div class="donations-filter">
+                    <button class="filter-btn active" data-status="all">All</button>
+                    <button class="filter-btn" data-status="available">Available</button>
+                    <button class="filter-btn" data-status="claimed">Claimed</button>
+                    <button class="filter-btn" data-status="completed">Completed</button>
+                </div>
+
+                <div id="donations-list" class="donations-grid">
+                    <!-- Donations will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="content-section">
+                <div class="section-header">
+                    <h2>Profile Settings</h2>
+                    <p>Manage your account information and preferences.</p>
+                </div>
+
+                <div class="profile-sections">
+                    <div class="profile-card">
+                        <h3>Account Information</h3>
+                        <form id="profile-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="profile-fullname">Full Name</label>
+                                    <input type="text" id="profile-fullname" name="fullName">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-username">Username</label>
+                                    <input type="text" id="profile-username" name="username">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="profile-email">Email</label>
+                                    <input type="email" id="profile-email" name="email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-phone">Phone</label>
+                                    <input type="tel" id="profile-phone" name="phone">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn primary">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>Donation Preferences</h3>
+                        <div class="preferences">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="email-notifications">
+                                <span class="checkmark"></span>
+                                Email notifications when items are claimed
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="anonymous-donations">
+                                <span class="checkmark"></span>
+                                Allow anonymous donations
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="auto-expire">
+                                <span class="checkmark"></span>
+                                Auto-expire unclaimed items after 24 hours
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

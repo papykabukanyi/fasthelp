@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Fast Help</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .users-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .approve-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.3s ease;
+        }
+        
+        .approve-btn:hover {
+            background: #059669;
+        }
+        
+        .email-settings-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .save-settings-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .save-settings-btn:hover {
+            background: #4338ca;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 5rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section" style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        
+        <!-- Login Form (shown when not logged in) -->
+        <div id="admin-login" class="login-form">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Admin Login</h2>
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" name="password" required>
+                </div>
+                <button type="submit" class="save-settings-btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+        </div>
+
+        <!-- Admin Panel (shown when logged in) -->
+        <div id="admin-panel" class="admin-hidden">
+            <div class="admin-container">
+                <div class="admin-header">
+                    <h1><i class="fas fa-shield-alt"></i> Fast Help Admin Panel</h1>
+                    <p>Manage users, donations, and system settings</p>
+                    <button onclick="logout()" style="position: absolute; top: 2rem; right: 2rem;" class="approve-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-grid" id="admin-stats">
+                    <div class="stat-card">
+                        <h3 id="total-users">0</h3>
+                        <p><i class="fas fa-users"></i> Total Users</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="pending-users">0</h3>
+                        <p><i class="fas fa-clock"></i> Pending Approval</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-donations">0</h3>
+                        <p><i class="fas fa-heart"></i> Total Donations</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-pickups">0</h3>
+                        <p><i class="fas fa-truck"></i> Total Pickups</p>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="admin-tabs">
+                    <button class="tab-button active" onclick="showTab('users')">
+                        <i class="fas fa-users"></i> User Management
+                    </button>
+                    <button class="tab-button" onclick="showTab('email')">
+                        <i class="fas fa-envelope"></i> Email Settings
+                    </button>
+                </div>
+
+                <!-- User Management Tab -->
+                <div id="users-tab" class="tab-content active">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="users-table" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Status</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Email Settings Tab -->
+                <div id="email-tab" class="tab-content">
+                    <h2><i class="fas fa-envelope"></i> Email Settings</h2>
+                    <form id="email-settings-form" class="email-settings-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="smtp-host">SMTP Host</label>
+                                <input type="text" id="smtp-host" name="host" placeholder="e.g., smtp.gmail.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtp-port">SMTP Port</label>
+                                <input type="number" id="smtp-port" name="port" placeholder="e.g., 587" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="smtp-secure">Security</label>
+                                <select id="smtp-secure" name="secure" required>
+                                    <option value="false">STARTTLS (Port 587)</option>
+                                    <option value="true">SSL/TLS (Port 465)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtp-user">Username/Email</label>
+                                <input type="email" id="smtp-user" name="user" placeholder="your-email@example.com" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="smtp-pass">Password/App Password</label>
+                                <input type="password" id="smtp-pass" name="pass" placeholder="Your email password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email-from">From Email Address</label>
+                                <input type="email" id="email-from" name="from" placeholder="noreply@fasthelp.com" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="save-settings-btn">
+                            <i class="fas fa-save"></i> Save Email Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.token = localStorage.getItem('adminToken');
+                this.init();
+            }
+
+            init() {
+                if (this.token) {
+                    this.showAdminPanel();
+                    this.loadStats();
+                    this.loadUsers();
+                    this.loadEmailSettings();
+                } else {
+                    this.showLoginForm();
+                }
+
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.login();
+                });
+
+                document.getElementById('email-settings-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveEmailSettings();
+                });
+            }
+
+            showLoginForm() {
+                document.getElementById('admin-login').classList.remove('admin-hidden');
+                document.getElementById('admin-panel').classList.add('admin-hidden');
+            }
+
+            showAdminPanel() {
+                document.getElementById('admin-login').classList.add('admin-hidden');
+                document.getElementById('admin-panel').classList.remove('admin-hidden');
+            }
+
+            async login() {
+                const formData = new FormData(document.getElementById('admin-login-form'));
+                const data = {
+                    email: formData.get('email'),
+                    password: formData.get('password')
+                };
+
+                try {
+                    FastHelpUtils.showLoading(true);
+                    
+                    const response = await FastHelpUtils.makeRequest('/api/login', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.user.role !== 'admin') {
+                        throw new Error('Admin access required');
+                    }
+
+                    this.token = response.token;
+                    localStorage.setItem('adminToken', this.token);
+                    
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification('Login successful!', 'success');
+                    
+                    this.showAdminPanel();
+                    this.loadStats();
+                    this.loadUsers();
+                    this.loadEmailSettings();
+
+                } catch (error) {
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification(error.message || 'Login failed', 'error');
+                }
+            }
+
+            async loadStats() {
+                try {
+                    const stats = await FastHelpUtils.makeRequest('/api/admin/stats', {
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    });
+
+                    document.getElementById('total-users').textContent = stats.totalUsers;
+                    document.getElementById('pending-users').textContent = stats.pendingUsers;
+                    document.getElementById('total-donations').textContent = stats.totalDonations;
+                    document.getElementById('total-pickups').textContent = stats.totalPickups;
+
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+
+            async loadUsers() {
+                try {
+                    const users = await FastHelpUtils.makeRequest('/api/admin/users', {
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    });
+
+                    this.renderUsers(users);
+
+                } catch (error) {
+                    console.error('Error loading users:', error);
+                    FastHelpUtils.showNotification('Error loading users', 'error');
+                }
+            }
+
+            renderUsers(users) {
+                const tbody = document.getElementById('users-tbody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    const createdDate = new Date(user.createdAt).toLocaleDateString();
+                    
+                    row.innerHTML = `
+                        <td>${user.fullName}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>
+                            <span class="status-badge ${user.isApproved ? 'status-approved' : 'status-pending'}">
+                                ${user.isApproved ? 'Approved' : 'Pending'}
+                            </span>
+                        </td>
+                        <td>${createdDate}</td>
+                        <td>
+                            ${!user.isApproved && user.role !== 'admin' ? 
+                                `<button class="approve-btn" onclick="adminPanel.approveUser('${user._id}')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>` : 
+                                '<span style="color: #6b7280;">No actions</span>'
+                            }
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+
+            async approveUser(userId) {
+                try {
+                    FastHelpUtils.showLoading(true);
+                    
+                    await FastHelpUtils.makeRequest(`/api/admin/users/${userId}/approve`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    });
+
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification('User approved successfully!', 'success');
+                    
+                    this.loadUsers();
+                    this.loadStats();
+
+                } catch (error) {
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification(error.message || 'Error approving user', 'error');
+                }
+            }
+
+            async loadEmailSettings() {
+                try {
+                    const settings = await FastHelpUtils.makeRequest('/api/admin/email-settings', {
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    });
+
+                    if (settings.smtp) {
+                        document.getElementById('smtp-host').value = settings.smtp.host || '';
+                        document.getElementById('smtp-port').value = settings.smtp.port || '';
+                        document.getElementById('smtp-secure').value = settings.smtp.secure || 'false';
+                        document.getElementById('smtp-user').value = settings.smtp.auth?.user || '';
+                        document.getElementById('email-from').value = settings.from || '';
+                    }
+
+                } catch (error) {
+                    console.error('Error loading email settings:', error);
+                }
+            }
+
+            async saveEmailSettings() {
+                const formData = new FormData(document.getElementById('email-settings-form'));
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    FastHelpUtils.showLoading(true);
+                    
+                    await FastHelpUtils.makeRequest('/api/admin/email-settings', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification('Email settings saved successfully!', 'success');
+
+                } catch (error) {
+                    FastHelpUtils.showLoading(false);
+                    FastHelpUtils.showNotification(error.message || 'Error saving email settings', 'error');
+                }
+            }
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active class to selected tab button
+            event.target.classList.add('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            location.reload();
+        }
+
+        // Initialize admin panel
+        const adminPanel = new AdminPanel();
+    </script>
+</body>
+</html>

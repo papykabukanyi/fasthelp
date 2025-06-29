@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickup Confirmation</title>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .email-container { background: #1a1a2e !important; }
+            .email-content { background: #16213e !important; color: #e2e8f0 !important; }
+            .hero-banner { background: #0f172a !important; }
+            .tip-box { background: #fbbf24 !important; }
+            .footer-text { color: #9ca3af !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div class="email-container" style="max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 24px;">🎉 Thank You for Your Kindness!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">You're making Austin more caring</p>
+        </div>
+        
+        <div class="email-content" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h2 style="color: #1f2937; margin-top: 0;">Pickup Confirmed! 💝</h2>
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.6;">Dear {{PICKER_NAME}},</p>
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.6;">
+                Amazing! You've successfully picked up: <strong style="color: #1f2937;">{{DONATION_TITLE}}</strong>
+            </p>
+            
+            <div class="hero-banner" style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+                <p style="margin: 0; color: #0f172a; font-size: 16px;">
+                    <strong>🌟 You're a community hero!</strong> By picking up this donation, you're helping connect resources with people who need them most. Every act of kindness creates a ripple effect that makes Austin stronger.
+                </p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.6;">
+                <strong>Next step:</strong> Please let the community know where you delivered this item so others can see the impact! This helps build trust and shows how our network of caring works.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{DELIVERY_CONFIRMATION_URL}}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          text-decoration: none; 
+                          padding: 15px 30px; 
+                          border-radius: 25px; 
+                          font-weight: bold; 
+                          display: inline-block; 
+                          transition: transform 0.2s;">
+                    📍 Share Where You Delivered
+                </a>
+            </div>
+            
+            <div class="tip-box" style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e; font-size: 14px;">
+                    💡 <strong>Tip:</strong> Sharing delivery locations helps our community see the real impact of their donations and builds trust among neighbors helping neighbors.
+                </p>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p class="footer-text" style="color: #9ca3af; font-size: 14px; margin: 0;">
+                    💚 Thank you for being part of Austin's caring community!
+                    <br>
+                    <strong>The Fast Help Team</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

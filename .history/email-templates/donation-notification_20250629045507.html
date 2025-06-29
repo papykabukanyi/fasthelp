@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Donation Available</title>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            .email-container { background: #1a1a2e !important; }
+            .email-content { background: #16213e !important; color: #e2e8f0 !important; }
+            .info-box { background: #2d3748 !important; }
+            .footer-text { color: #9ca3af !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div class="email-container" style="max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 24px;">🍽️ New Donation Available!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Help your Austin community</p>
+        </div>
+        
+        <div class="email-content" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <h2 style="color: #1f2937; margin-top: 0;">{{TITLE}}</h2>
+            <p style="color: #6b7280; font-size: 16px; line-height: 1.6;">{{DESCRIPTION}}</p>
+            
+            <div class="info-box" style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; color: #374151;"><strong>📍 Location:</strong> {{ADDRESS}}</p>
+                <p style="margin: 10px 0 0 0; color: #374151;"><strong>🏷️ Type:</strong> {{TYPE}}</p>
+                {{#DROPOFF_INSTRUCTIONS}}
+                <p style="margin: 10px 0 0 0; color: #374151;"><strong>📝 Instructions:</strong> {{DROPOFF_INSTRUCTIONS}}</p>
+                {{/DROPOFF_INSTRUCTIONS}}
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{{BASE_URL}}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          text-decoration: none; 
+                          padding: 15px 30px; 
+                          border-radius: 25px; 
+                          font-weight: bold; 
+                          display: inline-block; 
+                          transition: transform 0.2s;">
+                    🗺️ View on Map
+                </a>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p class="footer-text" style="color: #9ca3af; font-size: 14px; margin: 0;">
+                    💝 Thanks for helping make Austin more caring! 
+                    <br>
+                    <a href="{{BASE_URL}}/unsubscribe?email={{EMAIL}}" style="color: #6b7280;">Unsubscribe</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
