@@ -33,16 +33,6 @@ function log(level, message, meta = {}) {
     }
 }
 
-// Log startup information
-log('info', 'Starting Fast Help application', {
-    nodeVersion: process.version,
-    platform: process.platform,
-    environment: NODE_ENV,
-    port: PORT,
-    hasRedisUrl: !!REDIS_URL,
-    hasJwtSecret: !!JWT_SECRET
-});
-
 // Security middleware
 app.use(helmet({
     contentSecurityPolicy: false // Disable CSP for now to allow inline scripts
@@ -74,15 +64,11 @@ let redisClient;
 // Connect to Redis
 async function connectRedis() {
     try {
-        log('info', 'Connecting to Redis...', { url: REDIS_URL.replace(/:[^:]*@/, ':***@') });
-        
         redisClient = redis.createClient({
             url: REDIS_URL,
             socket: {
                 tls: false, // Set to true if using SSL
-                rejectUnauthorized: false,
-                connectTimeout: 10000,
-                lazyConnect: true
+                rejectUnauthorized: false
             }
         });
 
@@ -92,10 +78,6 @@ async function connectRedis() {
 
         redisClient.on('connect', () => {
             log('info', 'Connected to Redis successfully');
-        });
-
-        redisClient.on('ready', () => {
-            log('info', 'Redis client ready');
         });
 
         await redisClient.connect();
@@ -1049,7 +1031,7 @@ app.post('/api/delivery-confirmation/:trackingId', upload.single('deliveryImage'
         );
         
         if (thankYouHtml) {
-            await sendEmail(picker.pickerEmail, 'Thank You for Your Delivery - Fast Help', thankYouHtml);
+            await sendEmail(pickup.pickerEmail, 'Thank You for Your Delivery - Fast Help', thankYouHtml);
         }
 
         res.json({
