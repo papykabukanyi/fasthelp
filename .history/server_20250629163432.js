@@ -152,15 +152,11 @@ app.use((req, res, next) => {
     next();
 });
 
-// Redis connection - made optional for Railway deployment
-const REDIS_URL = process.env.REDIS_URL || '';
-let redisAvailable = false;
-
-if (REDIS_URL && REDIS_URL.includes('redis://')) {
-    redisAvailable = true;
-    console.log('✅ Redis URL configured');
-} else {
-    console.log('⚠️ No valid Redis URL - running without Redis cache');
+// Redis connection
+const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
+if (!REDIS_URL.includes('redis://')) {
+    console.error('Invalid REDIS_URL format');
+    process.exit(1);
 }
 
 // JWT secret
@@ -267,13 +263,13 @@ let redisClient;
 // Connect to Redis (made completely optional)
 async function connectRedis() {
     try {
-        // Skip Redis entirely if not available
-        if (!redisAvailable || !REDIS_URL) {
-            log('info', 'Skipping Redis connection - not configured or available');
+        log('info', 'Attempting Redis connection...', { url: REDIS_URL.replace(/:[^:]*@/, ':***@') });
+        
+        // Skip Redis entirely if URL looks invalid or in development without Redis
+        if (!REDIS_URL || REDIS_URL.includes('localhost') || NODE_ENV === 'development') {
+            log('info', 'Skipping Redis connection - not available or in development mode');
             return false;
         }
-        
-        log('info', 'Attempting Redis connection...', { url: REDIS_URL.replace(/:[^:]*@/, ':***@') });
         
         redisClient = redis.createClient({
             url: REDIS_URL,

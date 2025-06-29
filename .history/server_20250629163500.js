@@ -267,13 +267,13 @@ let redisClient;
 // Connect to Redis (made completely optional)
 async function connectRedis() {
     try {
-        // Skip Redis entirely if not available
-        if (!redisAvailable || !REDIS_URL) {
-            log('info', 'Skipping Redis connection - not configured or available');
+        log('info', 'Attempting Redis connection...', { url: REDIS_URL.replace(/:[^:]*@/, ':***@') });
+        
+        // Skip Redis entirely if URL looks invalid or in development without Redis
+        if (!REDIS_URL || REDIS_URL.includes('localhost') || NODE_ENV === 'development') {
+            log('info', 'Skipping Redis connection - not available or in development mode');
             return false;
         }
-        
-        log('info', 'Attempting Redis connection...', { url: REDIS_URL.replace(/:[^:]*@/, ':***@') });
         
         redisClient = redis.createClient({
             url: REDIS_URL,
