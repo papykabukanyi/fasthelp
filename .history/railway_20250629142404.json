@@ -4,9 +4,9 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node server-new.js",
+    "startCommand": "npm install --production --verbose && node test-server.js",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3,
+    "restartPolicyMaxRetries": 5,
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300
   }

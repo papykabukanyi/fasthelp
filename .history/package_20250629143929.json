@@ -4,13 +4,13 @@
   "description": "A modern React + Node.js platform connecting food donors with people in need",
   "main": "server.js",
   "scripts": {
-    "start": "node server-new.js",
+    "start": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "nodemon server-new.js",
-    "client": "cd client && npm run dev",
+    "server": "nodemon server.js",
+    "client": "cd client && npm start",
     "build": "cd client && npm run build",
-    "build:full": "npm install && npm run install-client && npm run build",
     "install-client": "cd client && npm install",
+    "heroku-postbuild": "npm run install-client && npm run build",
     "railway-build": "npm run install-client && npm run build",
     "test": "node test-config.js",
     "test:config": "node test-config.js"
