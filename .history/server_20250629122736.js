@@ -76,7 +76,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Redis connection (REDIS_URL already declared at top)
+// Redis connection
+const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
 if (!REDIS_URL.includes('redis://')) {
     log('error', 'Invalid REDIS_URL format');
     process.exit(1);
@@ -121,7 +122,8 @@ async function connectRedis() {
 // Initialize Redis connection
 connectRedis();
 
-// JWT secret (JWT_SECRET already declared at top)
+// JWT secret
+const JWT_SECRET = process.env.JWT_SECRET || 'fasthelp-secret-key-change-in-production';
 if (JWT_SECRET === 'fasthelp-secret-key-change-in-production' && NODE_ENV === 'production') {
     log('warn', 'Using default JWT_SECRET in production. Please set a secure JWT_SECRET environment variable.');
 }

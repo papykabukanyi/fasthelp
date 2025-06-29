@@ -121,7 +121,8 @@ async function connectRedis() {
 // Initialize Redis connection
 connectRedis();
 
-// JWT secret (JWT_SECRET already declared at top)
+// JWT secret
+const JWT_SECRET = process.env.JWT_SECRET || 'fasthelp-secret-key-change-in-production';
 if (JWT_SECRET === 'fasthelp-secret-key-change-in-production' && NODE_ENV === 'production') {
     log('warn', 'Using default JWT_SECRET in production. Please set a secure JWT_SECRET environment variable.');
 }
