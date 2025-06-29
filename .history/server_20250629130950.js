@@ -13,93 +13,40 @@ const EmailTemplateHelper = require('./email-template-helper');
 require('dotenv').config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT) || 3000;
+const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Debug: Log all environment variables related to Railway
-console.log('🔍 RAILWAY DEBUG INFO:');
-console.log('PORT from Railway:', process.env.PORT);
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Parsed PORT:', PORT);
-console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('PORT') || key.includes('RAILWAY')));
+// Log port information for Railway debugging
+console.log('🔍 PORT DEBUGGING:');
+console.log('- process.env.PORT:', process.env.PORT);
+console.log('- PORT variable:', PORT);
+console.log('- NODE_ENV:', NODE_ENV);
+console.log('- Railway URL should be: https://fasthelp-production.up.railway.app/');
 
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏥 HEALTH CHECK REQUESTED at ${timestamp}`);
-    console.log(`📍 From IP: ${req.ip || req.connection.remoteAddress}`);
-    console.log(`🌐 Host header: ${req.get('host')}`);
-    console.log(`🔄 User-Agent: ${req.get('user-agent')}`);
-    
-    const response = {
+    console.log('Health check requested at', new Date().toISOString());
+    res.status(200).json({
         status: 'healthy',
-        timestamp: timestamp,
+        timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         port: PORT,
         environment: NODE_ENV,
         version: '1.0.0',
-        message: 'Fast Help server is running',
-        railway: {
-            port: process.env.PORT,
-            host: req.get('host'),
-            protocol: req.protocol
-        }
-    };
-    
-    console.log(`✅ HEALTH CHECK RESPONDING:`, JSON.stringify(response, null, 2));
-    res.status(200).json(response);
+        message: 'Fast Help server is running'
+    });
 });
 
 // Simple ping endpoint for basic connectivity
 app.get('/ping', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏓 PING REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    console.log(`✅ PING RESPONDING: OK`);
+    console.log('Ping requested at', new Date().toISOString());
     res.status(200).send('OK');
 });
 
 // Test endpoint
 app.get('/test', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🧪 TEST ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    const message = `Fast Help Server is Running! Port: ${PORT}, Time: ${timestamp}`;
-    console.log(`✅ TEST RESPONDING:`, message);
-    res.status(200).send(message);
-});
-
-// Root endpoint for Railway initial checks
-app.get('/', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏠 ROOT ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    console.log(`📍 Host: ${req.get('host')}, Protocol: ${req.protocol}`);
-    
-    // For now, send a simple response to confirm server is working
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Fast Help - Server Running</title>
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-            .status { color: green; font-size: 24px; font-weight: bold; }
-            .info { color: #666; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <h1 class="status">✅ Fast Help Server is Running!</h1>
-        <div class="info">Port: ${PORT}</div>
-        <div class="info">Environment: ${NODE_ENV}</div>
-        <div class="info">Time: ${timestamp}</div>
-        <div class="info">
-            <a href="/health">Health Check</a> | 
-            <a href="/ping">Ping Test</a> | 
-            <a href="/test">Test Endpoint</a>
-        </div>
-    </body>
-    </html>`;
-    
-    console.log(`✅ ROOT RESPONDING with HTML page`);
-    res.status(200).send(html);
+    console.log('Test endpoint requested at', new Date().toISOString());
+    res.status(200).send('Fast Help Server is Running!');
 });
 
 // Request logging middleware for debugging
@@ -1565,35 +1512,44 @@ async function createDefaultAdmin() {
 }
 
 app.listen(PORT, '0.0.0.0', () => {
-    // Log successful server start with Railway-specific debugging
-    console.log(`🚀 ===== RAILWAY DEPLOYMENT SUCCESS =====`);
-    console.log(`✅ SERVER STARTED SUCCESSFULLY`);
-    console.log(`🌐 Host: 0.0.0.0`);
+    const timestamp = new Date().toISOString();
+    console.log(`🚀 SERVER STARTED SUCCESSFULLY!`);
+    console.log(`📍 Host: 0.0.0.0`);
     console.log(`🔌 Port: ${PORT}`);
-    console.log(`🌍 Environment: ${NODE_ENV}`);
-    console.log(`📍 Health check: http://0.0.0.0:${PORT}/health`);
-    console.log(`📍 Simple ping: http://0.0.0.0:${PORT}/ping`);
-    console.log(`📍 Test endpoint: http://0.0.0.0:${PORT}/test`);
-    console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
-    console.log(`🚀 ===== READY FOR RAILWAY TRAFFIC =====`);
+    console.log(`🌐 Environment: ${NODE_ENV}`);
+    console.log(`⏰ Started at: ${timestamp}`);
+    console.log(`🩺 Health check: http://0.0.0.0:${PORT}/health`);
+    console.log(`🚨 Railway URL: https://fasthelp-production.up.railway.app/`);
+    console.log(`🧪 Test endpoints:`);
+    console.log(`   - https://fasthelp-production.up.railway.app/health`);
+    console.log(`   - https://fasthelp-production.up.railway.app/ping`);
+    console.log(`   - https://fasthelp-production.up.railway.app/test`);
     
     log('info', `Fast Help server running on port ${PORT}`, {
         port: PORT,
         environment: NODE_ENV,
         healthCheck: `http://0.0.0.0:${PORT}/health`,
-        timestamp: new Date().toISOString()
+        timestamp: timestamp
     });
-    
-    // Log successful server start
-    console.log(`✅ SERVER STARTED SUCCESSFULLY ON PORT ${PORT}`);
-    console.log(`✅ Health check available at: http://0.0.0.0:${PORT}/health`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);
 }).on('error', (err) => {
-    log('error', 'Server failed to start', { error: err.message, port: PORT });
     console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}:`, err.message);
-    process.exit(1);
+    log('error', 'Server failed to start', { error: err.message, port: PORT });
+    
+    // Try alternative port if PORT is taken
+    if (err.code === 'EADDRINUSE') {
+        console.log(`🔄 Port ${PORT} in use, trying to find alternative...`);
+        const altPort = PORT + 1;
+        console.log(`🔄 Trying port ${altPort}...`);
+        
+        app.listen(altPort, '0.0.0.0', () => {
+            console.log(`✅ SERVER STARTED ON ALTERNATIVE PORT ${altPort}`);
+        });
+    } else {
+        process.exit(1);
+    }
 });
 
 // Handle process termination gracefully

@@ -25,81 +25,28 @@ console.log('All env vars:', Object.keys(process.env).filter(key => key.includes
 
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏥 HEALTH CHECK REQUESTED at ${timestamp}`);
-    console.log(`📍 From IP: ${req.ip || req.connection.remoteAddress}`);
-    console.log(`🌐 Host header: ${req.get('host')}`);
-    console.log(`🔄 User-Agent: ${req.get('user-agent')}`);
-    
-    const response = {
+    console.log('Health check requested at', new Date().toISOString());
+    res.status(200).json({
         status: 'healthy',
-        timestamp: timestamp,
+        timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         port: PORT,
         environment: NODE_ENV,
         version: '1.0.0',
-        message: 'Fast Help server is running',
-        railway: {
-            port: process.env.PORT,
-            host: req.get('host'),
-            protocol: req.protocol
-        }
-    };
-    
-    console.log(`✅ HEALTH CHECK RESPONDING:`, JSON.stringify(response, null, 2));
-    res.status(200).json(response);
+        message: 'Fast Help server is running'
+    });
 });
 
 // Simple ping endpoint for basic connectivity
 app.get('/ping', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏓 PING REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    console.log(`✅ PING RESPONDING: OK`);
+    console.log('Ping requested at', new Date().toISOString());
     res.status(200).send('OK');
 });
 
 // Test endpoint
 app.get('/test', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🧪 TEST ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    const message = `Fast Help Server is Running! Port: ${PORT}, Time: ${timestamp}`;
-    console.log(`✅ TEST RESPONDING:`, message);
-    res.status(200).send(message);
-});
-
-// Root endpoint for Railway initial checks
-app.get('/', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏠 ROOT ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    console.log(`📍 Host: ${req.get('host')}, Protocol: ${req.protocol}`);
-    
-    // For now, send a simple response to confirm server is working
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Fast Help - Server Running</title>
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-            .status { color: green; font-size: 24px; font-weight: bold; }
-            .info { color: #666; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <h1 class="status">✅ Fast Help Server is Running!</h1>
-        <div class="info">Port: ${PORT}</div>
-        <div class="info">Environment: ${NODE_ENV}</div>
-        <div class="info">Time: ${timestamp}</div>
-        <div class="info">
-            <a href="/health">Health Check</a> | 
-            <a href="/ping">Ping Test</a> | 
-            <a href="/test">Test Endpoint</a>
-        </div>
-    </body>
-    </html>`;
-    
-    console.log(`✅ ROOT RESPONDING with HTML page`);
-    res.status(200).send(html);
+    console.log('Test endpoint requested at', new Date().toISOString());
+    res.status(200).send('Fast Help Server is Running!');
 });
 
 // Request logging middleware for debugging
@@ -1565,18 +1512,6 @@ async function createDefaultAdmin() {
 }
 
 app.listen(PORT, '0.0.0.0', () => {
-    // Log successful server start with Railway-specific debugging
-    console.log(`🚀 ===== RAILWAY DEPLOYMENT SUCCESS =====`);
-    console.log(`✅ SERVER STARTED SUCCESSFULLY`);
-    console.log(`🌐 Host: 0.0.0.0`);
-    console.log(`🔌 Port: ${PORT}`);
-    console.log(`🌍 Environment: ${NODE_ENV}`);
-    console.log(`📍 Health check: http://0.0.0.0:${PORT}/health`);
-    console.log(`📍 Simple ping: http://0.0.0.0:${PORT}/ping`);
-    console.log(`📍 Test endpoint: http://0.0.0.0:${PORT}/test`);
-    console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
-    console.log(`🚀 ===== READY FOR RAILWAY TRAFFIC =====`);
-    
     log('info', `Fast Help server running on port ${PORT}`, {
         port: PORT,
         environment: NODE_ENV,

@@ -67,41 +67,6 @@ app.get('/test', (req, res) => {
     res.status(200).send(message);
 });
 
-// Root endpoint for Railway initial checks
-app.get('/', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`🏠 ROOT ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
-    console.log(`📍 Host: ${req.get('host')}, Protocol: ${req.protocol}`);
-    
-    // For now, send a simple response to confirm server is working
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Fast Help - Server Running</title>
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-            .status { color: green; font-size: 24px; font-weight: bold; }
-            .info { color: #666; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <h1 class="status">✅ Fast Help Server is Running!</h1>
-        <div class="info">Port: ${PORT}</div>
-        <div class="info">Environment: ${NODE_ENV}</div>
-        <div class="info">Time: ${timestamp}</div>
-        <div class="info">
-            <a href="/health">Health Check</a> | 
-            <a href="/ping">Ping Test</a> | 
-            <a href="/test">Test Endpoint</a>
-        </div>
-    </body>
-    </html>`;
-    
-    console.log(`✅ ROOT RESPONDING with HTML page`);
-    res.status(200).send(html);
-});
-
 // Request logging middleware for debugging
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - IP: ${req.ip || req.connection.remoteAddress}`);
