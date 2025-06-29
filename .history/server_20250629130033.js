@@ -953,12 +953,6 @@ app.get('/unsubscribe', async (req, res) => {
                     async function unsubscribe(event) {
                         event.preventDefault();
                         const email = document.getElementById('email').value;
-                        const resultDiv = document.getElementById('result');
-                        
-                        try {
-                            const response = await fetch('/api/unsubscribe-notifications', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ email })
                             });
                             

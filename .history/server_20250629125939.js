@@ -42,12 +42,6 @@ app.get('/test', (req, res) => {
     res.status(200).send('Fast Help Server is Running!');
 });
 
-// Request logging middleware for debugging
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - IP: ${req.ip || req.connection.remoteAddress}`);
-    next();
-});
-
 // Redis connection
 const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
 if (!REDIS_URL.includes('redis://')) {

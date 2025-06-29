@@ -16,38 +16,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// CRITICAL: Health check endpoints FIRST - before ANY middleware
-app.get('/health', (req, res) => {
-    console.log('Health check requested at', new Date().toISOString());
-    res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        port: PORT,
-        environment: NODE_ENV,
-        version: '1.0.0',
-        message: 'Fast Help server is running'
-    });
-});
-
-// Simple ping endpoint for basic connectivity
-app.get('/ping', (req, res) => {
-    console.log('Ping requested at', new Date().toISOString());
-    res.status(200).send('OK');
-});
-
-// Test endpoint
-app.get('/test', (req, res) => {
-    console.log('Test endpoint requested at', new Date().toISOString());
-    res.status(200).send('Fast Help Server is Running!');
-});
-
-// Request logging middleware for debugging
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - IP: ${req.ip || req.connection.remoteAddress}`);
-    next();
-});
-
 // Redis connection
 const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
 if (!REDIS_URL.includes('redis://')) {
@@ -104,41 +72,6 @@ app.use('/api/', limiter);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// API health check with Redis status (detailed)
-app.get('/api/health', async (req, res) => {
-    console.log('API health check requested');
-    try {
-        let redisStatus = 'disconnected';
-        
-        // Check Redis only if client exists and is connected
-        if (redisClient && redisClient.isReady) {
-            try {
-                const pingResult = await redisClient.ping();
-                redisStatus = pingResult === 'PONG' ? 'connected' : 'disconnected';
-            } catch (redisErr) {
-                log('warn', 'Redis ping failed in health check', { error: redisErr.message });
-                redisStatus = 'error';
-            }
-        }
-        
-        res.status(200).json({
-            status: 'healthy',
-            services: {
-                redis: redisStatus,
-                database: 'connected'
-            },
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        log('error', 'Health check error', { error: error.message });
-        res.status(503).json({
-            status: 'unhealthy',
-            error: 'Service unavailable',
-            timestamp: new Date().toISOString()
-        });
-    }
-});
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1419,6 +1352,40 @@ app.delete('/api/admin/donations/:id', authenticateToken, async (req, res) => {
 // Routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Health check endpoints need to be at the top for Railway
+app.get('/api/health', async (req, res) => {
+    try {
+        let redisStatus = 'disconnected';
+        
+        // Check Redis only if client exists and is connected
+        if (redisClient && redisClient.isReady) {
+            try {
+                const pingResult = await redisClient.ping();
+                redisStatus = pingResult === 'PONG' ? 'connected' : 'disconnected';
+            } catch (redisErr) {
+                log('warn', 'Redis ping failed in health check', { error: redisErr.message });
+                redisStatus = 'error';
+            }
+        }
+        
+        res.status(200).json({
+            status: 'healthy',
+            services: {
+                redis: redisStatus,
+                database: 'connected'
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        log('error', 'Health check error', { error: error.message });
+        res.status(503).json({
+            status: 'unhealthy',
+            error: 'Service unavailable',
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 app.get('/donor-signup', (req, res) => {

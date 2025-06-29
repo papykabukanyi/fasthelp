@@ -16,38 +16,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// CRITICAL: Health check endpoints FIRST - before ANY middleware
-app.get('/health', (req, res) => {
-    console.log('Health check requested at', new Date().toISOString());
-    res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        port: PORT,
-        environment: NODE_ENV,
-        version: '1.0.0',
-        message: 'Fast Help server is running'
-    });
-});
-
-// Simple ping endpoint for basic connectivity
-app.get('/ping', (req, res) => {
-    console.log('Ping requested at', new Date().toISOString());
-    res.status(200).send('OK');
-});
-
-// Test endpoint
-app.get('/test', (req, res) => {
-    console.log('Test endpoint requested at', new Date().toISOString());
-    res.status(200).send('Fast Help Server is Running!');
-});
-
-// Request logging middleware for debugging
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - IP: ${req.ip || req.connection.remoteAddress}`);
-    next();
-});
-
 // Redis connection
 const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
 if (!REDIS_URL.includes('redis://')) {
@@ -105,7 +73,32 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API health check with Redis status (detailed)
+// CRITICAL: Health check endpoints MUST be first for Railway
+app.get('/health', (req, res) => {
+    console.log('Health check requested');
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0',
+        message: 'Fast Help server is running'
+    });
+});
+
+// Simple text health check as backup
+app.get('/ping', (req, res) => {
+    console.log('Ping requested');
+    res.status(200).send('OK');
+});
+
+// Root endpoint for basic connectivity test
+app.get('/test', (req, res) => {
+    console.log('Test endpoint requested');
+    res.status(200).send('Fast Help Server is Running!');
+});
+
+// API health check with Redis status
 app.get('/api/health', async (req, res) => {
     console.log('API health check requested');
     try {
