@@ -1413,11 +1413,7 @@ async function createDefaultAdmin() {
 }
 
 app.listen(PORT, () => {
-    log('info', `Fast Help server running on port ${PORT}`, {
-        port: PORT,
-        environment: NODE_ENV,
-        healthCheck: `/health`
-    });
+    console.log(`Fast Help server running on http://localhost:${PORT}`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);

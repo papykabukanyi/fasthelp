@@ -73,17 +73,17 @@ async function connectRedis() {
         });
 
         redisClient.on('error', (err) => {
-            log('error', 'Redis Client Error', { error: err.message });
+            console.error('Redis Client Error:', err);
         });
 
         redisClient.on('connect', () => {
-            log('info', 'Connected to Redis successfully');
+            console.log('Connected to Redis successfully');
         });
 
         await redisClient.connect();
-        log('info', 'Redis connection established');
+        console.log('Redis connection established');
     } catch (err) {
-        log('error', 'Redis connection error', { error: err.message });
+        console.error('Redis connection error:', err);
         process.exit(1);
     }
 }
@@ -1401,23 +1401,19 @@ async function createDefaultAdmin() {
             };
 
             await RedisHelper.createUser(adminData);
-            log('info', `Default admin user created: ${adminEmail}`);
+            console.log(`Default admin user created: ${adminEmail}`);
             
             if (adminPassword === 'admin123') {
-                log('warn', '⚠️  WARNING: Using default admin password. Please change it immediately after deployment!');
+                console.warn('⚠️  WARNING: Using default admin password. Please change it immediately after deployment!');
             }
         }
     } catch (error) {
-        log('error', 'Error creating default admin', { error: error.message });
+        console.error('Error creating default admin:', error);
     }
 }
 
 app.listen(PORT, () => {
-    log('info', `Fast Help server running on port ${PORT}`, {
-        port: PORT,
-        environment: NODE_ENV,
-        healthCheck: `/health`
-    });
+    console.log(`Fast Help server running on http://localhost:${PORT}`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);

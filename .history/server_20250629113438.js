@@ -14,24 +14,6 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-// Logging function
-function log(level, message, meta = {}) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-        timestamp,
-        level,
-        message,
-        ...meta
-    };
-    
-    if (NODE_ENV === 'production') {
-        console.log(JSON.stringify(logEntry));
-    } else {
-        console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, meta);
-    }
-}
 
 // Security middleware
 app.use(helmet({
@@ -54,11 +36,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Redis connection
-const REDIS_URL = process.env.REDIS_URL;
-if (!REDIS_URL) {
-    console.error('REDIS_URL environment variable is required');
-    process.exit(1);
-}
+const REDIS_URL = process.env.REDIS_URL || 'redis://default:jruEbHscCcZMsxpoOcYwuOmlLAdDwmOs@nozomi.proxy.rlwy.net:34022';
 let redisClient;
 
 // Connect to Redis
@@ -73,17 +51,17 @@ async function connectRedis() {
         });
 
         redisClient.on('error', (err) => {
-            log('error', 'Redis Client Error', { error: err.message });
+            console.error('Redis Client Error:', err);
         });
 
         redisClient.on('connect', () => {
-            log('info', 'Connected to Redis successfully');
+            console.log('Connected to Redis successfully');
         });
 
         await redisClient.connect();
-        log('info', 'Redis connection established');
+        console.log('Redis connection established');
     } catch (err) {
-        log('error', 'Redis connection error', { error: err.message });
+        console.error('Redis connection error:', err);
         process.exit(1);
     }
 }
@@ -92,11 +70,7 @@ async function connectRedis() {
 connectRedis();
 
 // JWT secret
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-    console.error('JWT_SECRET environment variable is required');
-    process.exit(1);
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'fasthelp-secret-key-change-in-production';
 
 // File upload configuration
 const storage = multer.diskStorage({
@@ -237,14 +211,10 @@ class RedisHelper {
         
         await redisClient.hSet(`donation:${donationId}`, donationForRedis);
         await redisClient.sAdd('donations:all', donationId);
+        await redisClient.sAdd('donations:available', donationId);
         
-        // Only add to available set if status is 'available' or 'approved'
-        if (donation.status === 'available' || donation.status === 'approved') {
-            await redisClient.sAdd('donations:available', donationId);
-        }
-        
-        // Add to geospatial index for location-based queries only if approved
-        if ((donation.status === 'available' || donation.status === 'approved') && donation.lat && donation.lng) {
+        // Add to geospatial index for location-based queries
+        if (donation.lat && donation.lng) {
             await redisClient.geoAdd('donations:geo', {
                 longitude: parseFloat(donation.lng),
                 latitude: parseFloat(donation.lat),
@@ -651,13 +621,9 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Check if user is approved (admin users are always approved)
-        if (user.role !== 'admin' && user.isApproved !== 'true') {
-            if (user.isApproved === 'denied') {
-                return res.status(401).json({ error: 'Your account has been denied access' });
-            } else {
-                return res.status(401).json({ error: 'Your account is pending approval' });
-            }
+        // Check if user is approved
+        if (user.isApproved !== 'true') {
+            return res.status(401).json({ error: 'Your account is pending approval' });
         }
 
         // Generate JWT token
@@ -1045,38 +1011,6 @@ app.post('/api/delivery-confirmation/:trackingId', upload.single('deliveryImage'
     }
 });
 
-// Get user's own donations
-app.get('/api/donations/my', authenticateToken, async (req, res) => {
-    try {
-        const allDonations = await RedisHelper.getAllDonations();
-        const userDonations = allDonations.filter(donation => donation.donorId === req.user.userId);
-        
-        res.json(userDonations);
-    } catch (error) {
-        console.error('Error fetching user donations:', error);
-        res.status(500).json({ error: 'Failed to fetch your donations' });
-    }
-});
-
-// Get current user info
-app.get('/api/auth/me', authenticateToken, async (req, res) => {
-    try {
-        const user = await RedisHelper.getUserById(req.user.userId);
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        // Remove password from response
-        const { password: _, ...userWithoutPassword } = user;
-
-        res.json({ user: userWithoutPassword });
-    } catch (error) {
-        console.error('Error fetching user info:', error);
-        res.status(500).json({ error: 'Failed to fetch user information' });
-    }
-});
-
 // Admin routes
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
     try {
@@ -1221,21 +1155,6 @@ app.post('/api/admin/donations/:id/approve', authenticateToken, async (req, res)
             approvedBy: req.user.userId
         });
 
-        // Add to available donations and geo index
-        await redisClient.sAdd('donations:available', id);
-        
-        const approvedDonation = await RedisHelper.getDonationById(id);
-        if (approvedDonation && approvedDonation.lat && approvedDonation.lng) {
-            await redisClient.geoAdd('donations:geo', {
-                longitude: parseFloat(approvedDonation.lng),
-                latitude: parseFloat(approvedDonation.lat),
-                member: id
-            });
-        }
-
-        // Send notification emails to subscribers
-        await sendDonationNotificationEmails(approvedDonation);
-
         res.json({ message: 'Donation approved successfully' });
 
     } catch (error) {
@@ -1301,40 +1220,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Health check endpoint for Railway and monitoring
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV || 'development',
-        version: require('./package.json').version || '1.0.0'
-    });
-});
-
-// API health check
-app.get('/api/health', async (req, res) => {
-    try {
-        // Test Redis connection
-        const redisStatus = await redisClient.ping();
-        
-        res.status(200).json({
-            status: 'healthy',
-            services: {
-                redis: redisStatus === 'PONG' ? 'connected' : 'disconnected',
-                database: 'connected'
-            },
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(503).json({
-            status: 'unhealthy',
-            error: 'Service unavailable',
-            timestamp: new Date().toISOString()
-        });
-    }
-});
-
 app.get('/donor-signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'donor-signup.html'));
 });
@@ -1351,73 +1236,33 @@ app.get('/delivery-confirmation', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'delivery-confirmation.html'));
 });
 
-// 404 handler - must be last
-app.get('*', (req, res) => {
-    // Check if it's an API request
-    if (req.path.startsWith('/api/')) {
-        res.status(404).json({ 
-            error: 'API endpoint not found',
-            path: req.path,
-            method: req.method 
-        });
-    } else {
-        // Serve 404 page for web requests
-        res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-    }
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-    console.error('Unhandled error:', error);
-    
-    if (req.path.startsWith('/api/')) {
-        res.status(500).json({ 
-            error: 'Internal server error',
-            message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-        });
-    } else {
-        res.status(500).send('Internal Server Error');
-    }
-});
-
 // Create default admin user on first run
 async function createDefaultAdmin() {
     try {
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@fasthelp.com';
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-        
-        const adminExists = await RedisHelper.getUserByEmail(adminEmail);
+        const adminExists = await RedisHelper.getUserByEmail('admin@fasthelp.com');
         
         if (!adminExists) {
-            const hashedPassword = await bcrypt.hash(adminPassword, 12);
+            const hashedPassword = await bcrypt.hash('admin123', 12);
             
             const adminData = {
                 fullName: 'Admin User',
                 username: 'admin',
-                email: adminEmail,
+                email: 'admin@fasthelp.com',
                 password: hashedPassword,
                 role: 'admin',
                 isApproved: true // This will be converted to string in createUser method
             };
 
             await RedisHelper.createUser(adminData);
-            log('info', `Default admin user created: ${adminEmail}`);
-            
-            if (adminPassword === 'admin123') {
-                log('warn', '⚠️  WARNING: Using default admin password. Please change it immediately after deployment!');
-            }
+            console.log('Default admin user created: admin@fasthelp.com / admin123');
         }
     } catch (error) {
-        log('error', 'Error creating default admin', { error: error.message });
+        console.error('Error creating default admin:', error);
     }
 }
 
 app.listen(PORT, () => {
-    log('info', `Fast Help server running on port ${PORT}`, {
-        port: PORT,
-        environment: NODE_ENV,
-        healthCheck: `/health`
-    });
+    console.log(`Fast Help server running on http://localhost:${PORT}`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);

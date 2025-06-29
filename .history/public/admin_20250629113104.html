@@ -255,47 +255,10 @@
             cursor: pointer;
             font-size: 0.875rem;
             transition: background 0.3s ease;
-            margin-right: 0.5rem;
         }
         
         .approve-btn:hover {
             background: #059669;
-        }
-        
-        .deny-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: background 0.3s ease;
-            margin-right: 0.5rem;
-        }
-        
-        .deny-btn:hover {
-            background: #dc2626;
-        }
-        
-        .delete-btn {
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: background 0.3s ease;
-        }
-        
-        .delete-btn:hover {
-            background: #4b5563;
-        }
-        
-        .status-denied {
-            background: #fee2e2;
-            color: #991b1b;
         }
         
         .email-settings-form {
@@ -571,7 +534,6 @@
                     this.showAdminPanel();
                     this.loadStats();
                     this.loadUsers();
-                    this.loadDonations();
                     this.loadEmailSettings();
                 } else {
                     this.showLoginForm();
@@ -630,7 +592,6 @@
                     this.showAdminPanel();
                     this.loadStats();
                     this.loadUsers();
-                    this.loadDonations();
                     this.loadEmailSettings();
 
                 } catch (error) {
@@ -647,10 +608,10 @@
                         }
                     });
 
-                    document.getElementById('total-users').textContent = stats.totalUsers || 0;
-                    document.getElementById('pending-users').textContent = stats.pendingUsers || 0;
-                    document.getElementById('active-donations').textContent = stats.activeDonations || 0;
-                    document.getElementById('pending-donations').textContent = stats.pendingDonations || 0;
+                    document.getElementById('total-users').textContent = stats.totalUsers;
+                    document.getElementById('pending-users').textContent = stats.pendingUsers;
+                    document.getElementById('total-donations').textContent = stats.totalDonations;
+                    document.getElementById('total-pickups').textContent = stats.totalPickups;
 
                 } catch (error) {
                     console.error('Error loading stats:', error);
@@ -681,54 +642,25 @@
                     const row = document.createElement('tr');
                     const createdDate = new Date(user.createdAt).toLocaleDateString();
                     
-                    let statusClass = 'status-pending';
-                    let statusText = 'Pending';
-                    
-                    if (user.isApproved === 'true') {
-                        statusClass = 'status-approved';
-                        statusText = 'Approved';
-                    } else if (user.isApproved === 'denied') {
-                        statusClass = 'status-denied';
-                        statusText = 'Denied';
-                    }
-                    
-                    let actions = '';
-                    if (user.role !== 'admin') {
-                        if (user.isApproved === 'false') {
-                            actions = `
-                                <button class="approve-btn" onclick="adminPanel.approveUser('${user._id}')">
-                                    <i class="fas fa-check"></i> Approve
-                                </button>
-                                <button class="deny-btn" onclick="adminPanel.denyUser('${user._id}')">
-                                    <i class="fas fa-times"></i> Deny
-                                </button>
-                                <button class="delete-btn" onclick="adminPanel.deleteUser('${user._id}')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            `;
-                        } else {
-                            actions = `
-                                <button class="delete-btn" onclick="adminPanel.deleteUser('${user._id}')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            `;
-                        }
-                    } else {
-                        actions = '<span style="color: #6b7280;">Admin User</span>';
-                    }
-                    
                     row.innerHTML = `
                         <td>${user.fullName}</td>
                         <td>${user.username}</td>
                         <td>${user.email}</td>
                         <td>${user.phone || 'N/A'}</td>
                         <td>
-                            <span class="status-badge ${statusClass}">
-                                ${statusText}
+                            <span class="status-badge ${user.isApproved ? 'status-approved' : 'status-pending'}">
+                                ${user.isApproved ? 'Approved' : 'Pending'}
                             </span>
                         </td>
                         <td>${createdDate}</td>
-                        <td>${actions}</td>
+                        <td>
+                            ${!user.isApproved && user.role !== 'admin' ? 
+                                `<button class="approve-btn" onclick="adminPanel.approveUser('${user._id}')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>` : 
+                                '<span style="color: #6b7280;">No actions</span>'
+                            }
+                        </td>
                     `;
                     
                     tbody.appendChild(row);
@@ -755,216 +687,6 @@
                 } catch (error) {
                     FastHelpUtils.showLoading(false);
                     FastHelpUtils.showNotification(error.message || 'Error approving user', 'error');
-                }
-            }
-
-            async denyUser(userId) {
-                if (!confirm('Are you sure you want to deny this user?')) {
-                    return;
-                }
-
-                try {
-                    FastHelpUtils.showLoading(true);
-                    
-                    await FastHelpUtils.makeRequest(`/api/admin/users/${userId}/deny`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification('User denied successfully!', 'success');
-                    
-                    this.loadUsers();
-                    this.loadStats();
-
-                } catch (error) {
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification(error.message || 'Error denying user', 'error');
-                }
-            }
-
-            async deleteUser(userId) {
-                if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-                    return;
-                }
-
-                try {
-                    FastHelpUtils.showLoading(true);
-                    
-                    await FastHelpUtils.makeRequest(`/api/admin/users/${userId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification('User deleted successfully!', 'success');
-                    
-                    this.loadUsers();
-                    this.loadStats();
-
-                } catch (error) {
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification(error.message || 'Error deleting user', 'error');
-                }
-            }
-
-            async loadDonations() {
-                try {
-                    const donations = await FastHelpUtils.makeRequest('/api/admin/donations', {
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    this.renderDonations(donations);
-
-                } catch (error) {
-                    console.error('Error loading donations:', error);
-                    FastHelpUtils.showNotification('Error loading donations', 'error');
-                }
-            }
-
-            renderDonations(donations) {
-                const tbody = document.getElementById('donations-tbody');
-                tbody.innerHTML = '';
-
-                donations.forEach(donation => {
-                    const row = document.createElement('tr');
-                    const createdDate = new Date(donation.createdAt).toLocaleDateString();
-                    
-                    let statusClass = 'status-pending';
-                    let statusText = 'Pending';
-                    
-                    if (donation.status === 'approved' || donation.status === 'available') {
-                        statusClass = 'status-approved';
-                        statusText = 'Active';
-                    } else if (donation.status === 'denied') {
-                        statusClass = 'status-denied';
-                        statusText = 'Denied';
-                    } else if (donation.status === 'picked_up') {
-                        statusClass = 'status-approved';
-                        statusText = 'Picked Up';
-                    }
-                    
-                    let actions = '';
-                    if (donation.status === 'pending') {
-                        actions = `
-                            <button class="approve-btn" onclick="adminPanel.approveDonation('${donation._id}')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="deny-btn" onclick="adminPanel.denyDonation('${donation._id}')">
-                                <i class="fas fa-times"></i> Deny
-                            </button>
-                            <button class="delete-btn" onclick="adminPanel.deleteDonation('${donation._id}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    } else if (donation.status !== 'picked_up') {
-                        actions = `
-                            <button class="delete-btn" onclick="adminPanel.deleteDonation('${donation._id}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        `;
-                    } else {
-                        actions = '<span style="color: #6b7280;">Completed</span>';
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${donation.foodType}</td>
-                        <td>${donation.quantity}</td>
-                        <td>${donation.address || 'N/A'}</td>
-                        <td>${donation.donorName || 'N/A'}</td>
-                        <td>
-                            <span class="status-badge ${statusClass}">
-                                ${statusText}
-                            </span>
-                        </td>
-                        <td>${createdDate}</td>
-                        <td>${actions}</td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                });
-            }
-
-            async approveDonation(donationId) {
-                try {
-                    FastHelpUtils.showLoading(true);
-                    
-                    await FastHelpUtils.makeRequest(`/api/admin/donations/${donationId}/approve`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification('Donation approved successfully!', 'success');
-                    
-                    this.loadDonations();
-                    this.loadStats();
-
-                } catch (error) {
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification(error.message || 'Error approving donation', 'error');
-                }
-            }
-
-            async denyDonation(donationId) {
-                if (!confirm('Are you sure you want to deny this donation?')) {
-                    return;
-                }
-
-                try {
-                    FastHelpUtils.showLoading(true);
-                    
-                    await FastHelpUtils.makeRequest(`/api/admin/donations/${donationId}/deny`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification('Donation denied successfully!', 'success');
-                    
-                    this.loadDonations();
-                    this.loadStats();
-
-                } catch (error) {
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification(error.message || 'Error denying donation', 'error');
-                }
-            }
-
-            async deleteDonation(donationId) {
-                if (!confirm('Are you sure you want to delete this donation? This action cannot be undone.')) {
-                    return;
-                }
-
-                try {
-                    FastHelpUtils.showLoading(true);
-                    
-                    await FastHelpUtils.makeRequest(`/api/admin/donations/${donationId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${this.token}`
-                        }
-                    });
-
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification('Donation deleted successfully!', 'success');
-                    
-                    this.loadDonations();
-                    this.loadStats();
-
-                } catch (error) {
-                    FastHelpUtils.showLoading(false);
-                    FastHelpUtils.showNotification(error.message || 'Error deleting donation', 'error');
                 }
             }
 

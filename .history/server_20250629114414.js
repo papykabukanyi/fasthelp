@@ -14,24 +14,6 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-// Logging function
-function log(level, message, meta = {}) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-        timestamp,
-        level,
-        message,
-        ...meta
-    };
-    
-    if (NODE_ENV === 'production') {
-        console.log(JSON.stringify(logEntry));
-    } else {
-        console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, meta);
-    }
-}
 
 // Security middleware
 app.use(helmet({
@@ -73,17 +55,17 @@ async function connectRedis() {
         });
 
         redisClient.on('error', (err) => {
-            log('error', 'Redis Client Error', { error: err.message });
+            console.error('Redis Client Error:', err);
         });
 
         redisClient.on('connect', () => {
-            log('info', 'Connected to Redis successfully');
+            console.log('Connected to Redis successfully');
         });
 
         await redisClient.connect();
-        log('info', 'Redis connection established');
+        console.log('Redis connection established');
     } catch (err) {
-        log('error', 'Redis connection error', { error: err.message });
+        console.error('Redis connection error:', err);
         process.exit(1);
     }
 }
@@ -1383,41 +1365,30 @@ app.use((error, req, res, next) => {
 // Create default admin user on first run
 async function createDefaultAdmin() {
     try {
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@fasthelp.com';
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-        
-        const adminExists = await RedisHelper.getUserByEmail(adminEmail);
+        const adminExists = await RedisHelper.getUserByEmail('admin@fasthelp.com');
         
         if (!adminExists) {
-            const hashedPassword = await bcrypt.hash(adminPassword, 12);
+            const hashedPassword = await bcrypt.hash('admin123', 12);
             
             const adminData = {
                 fullName: 'Admin User',
                 username: 'admin',
-                email: adminEmail,
+                email: 'admin@fasthelp.com',
                 password: hashedPassword,
                 role: 'admin',
                 isApproved: true // This will be converted to string in createUser method
             };
 
             await RedisHelper.createUser(adminData);
-            log('info', `Default admin user created: ${adminEmail}`);
-            
-            if (adminPassword === 'admin123') {
-                log('warn', '⚠️  WARNING: Using default admin password. Please change it immediately after deployment!');
-            }
+            console.log('Default admin user created: admin@fasthelp.com / admin123');
         }
     } catch (error) {
-        log('error', 'Error creating default admin', { error: error.message });
+        console.error('Error creating default admin:', error);
     }
 }
 
 app.listen(PORT, () => {
-    log('info', `Fast Help server running on port ${PORT}`, {
-        port: PORT,
-        environment: NODE_ENV,
-        healthCheck: `/health`
-    });
+    console.log(`Fast Help server running on http://localhost:${PORT}`);
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);
