@@ -1593,10 +1593,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);
-});
-
-// Handle server startup errors
-server.on('error', (err) => {
+}).on('error', (err) => {
     log('error', 'Server failed to start', { error: err.message, port: PORT });
     console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}:`, err.message);
     process.exit(1);

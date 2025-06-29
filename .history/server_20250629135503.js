@@ -1572,12 +1572,17 @@ async function createDefaultAdmin() {
     }
 }
 
-// Start server - bind to all interfaces for Railway
-const server = app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
+    // Railway deployment success logging
     console.log(`🚀 ===== RAILWAY DEPLOYMENT SUCCESS =====`);
-    console.log(`✅ SERVER STARTED ON ALL INTERFACES (0.0.0.0:${PORT})`);
+    console.log(`✅ SERVER STARTED SUCCESSFULLY`);
+    console.log(`🔌 Listening on PORT: ${PORT}`);
     console.log(`🌍 Environment: ${NODE_ENV}`);
+    console.log(`📍 Health check: /health`);
+    console.log(`📍 Simple ping: /ping`);
+    console.log(`📍 Test endpoint: /test`);
     console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+    console.log(`🌐 Server ready to accept connections`);
     console.log(`🚀 ===== READY FOR RAILWAY TRAFFIC =====`);
     
     log('info', `Fast Help server running on port ${PORT}`, {
@@ -1593,10 +1598,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     
     // Create default admin after server starts and Redis is connected
     setTimeout(createDefaultAdmin, 3000);
-});
-
-// Handle server startup errors
-server.on('error', (err) => {
+}).on('error', (err) => {
     log('error', 'Server failed to start', { error: err.message, port: PORT });
     console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}:`, err.message);
     process.exit(1);
