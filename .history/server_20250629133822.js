@@ -26,20 +26,46 @@ console.log('Railway env vars:', Object.keys(process.env).filter(key => key.incl
 
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
-    console.log(`🏥 HEALTH CHECK - IMMEDIATE RESPONSE`);
-    res.status(200).json({ status: 'healthy' });
+    const timestamp = new Date().toISOString();
+    console.log(`🏥 HEALTH CHECK REQUESTED at ${timestamp}`);
+    console.log(`📍 From IP: ${req.ip || req.connection.remoteAddress}`);
+    console.log(`🌐 Host header: ${req.get('host')}`);
+    console.log(`🔄 User-Agent: ${req.get('user-agent')}`);
+    
+    const response = {
+        status: 'healthy',
+        timestamp: timestamp,
+        uptime: process.uptime(),
+        port: PORT,
+        environment: NODE_ENV,
+        version: '1.0.0',
+        message: 'Fast Help server is running',
+        railway: {
+            port: process.env.PORT,
+            host: req.get('host'),
+            protocol: req.protocol
+        }
+    };
+    
+    console.log(`✅ HEALTH CHECK RESPONDING:`, JSON.stringify(response, null, 2));
+    res.status(200).json(response);
 });
 
-// Ultra-simple ping endpoint
+// Simple ping endpoint for basic connectivity
 app.get('/ping', (req, res) => {
-    console.log(`🏓 PING - IMMEDIATE RESPONSE`);
+    const timestamp = new Date().toISOString();
+    console.log(`🏓 PING REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
+    console.log(`✅ PING RESPONDING: OK`);
     res.status(200).send('OK');
 });
 
-// Simple test endpoint
+// Test endpoint
 app.get('/test', (req, res) => {
-    console.log(`🧪 TEST - IMMEDIATE RESPONSE`);
-    res.status(200).send('Server Running');
+    const timestamp = new Date().toISOString();
+    console.log(`🧪 TEST ENDPOINT REQUESTED at ${timestamp} from ${req.ip || req.connection.remoteAddress}`);
+    const message = `Fast Help Server is Running! Port: ${PORT}, Time: ${timestamp}`;
+    console.log(`✅ TEST RESPONDING:`, message);
+    res.status(200).send(message);
 });
 
 // Root endpoint for Railway initial checks
