@@ -1572,39 +1572,6 @@ app.delete('/api/admin/donations/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Admin stats endpoint
-app.get('/api/admin/stats', authenticateToken, async (req, res) => {
-    try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Admin access required' });
-        }
-
-        // Get basic stats (simplified for demo)
-        const users = await RedisHelper.getAllUsers() || [];
-        const donations = await RedisHelper.getAllDonations() || [];
-        
-        const stats = {
-            totalUsers: users.length,
-            totalDonations: donations.length,
-            activeDonors: users.filter(u => u.userType === 'donor' && u.status === 'active').length,
-            pendingRequests: donations.filter(d => d.status === 'pending').length
-        };
-        
-        res.json(stats);
-    } catch (error) {
-        console.error('Error fetching admin stats:', error);
-        res.status(500).json({ error: 'Failed to fetch statistics' });
-    }
-});
-
-// Catch-all handler for React Router (must be LAST route)
-if (NODE_ENV === 'production') {
-    app.get('*', (req, res) => {
-        console.log(`🔄 React Router fallback for: ${req.path}`);
-        res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-    });
-}
-
 // Additional Routes (root route already defined at top)
 app.get('/donor-signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'donor-signup.html'));

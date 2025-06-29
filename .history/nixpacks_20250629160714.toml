@@ -4,13 +4,12 @@ nixPkgs = ["nodejs-18_x"]
 [phases.install]
 cmds = [
   "npm install --production=false",
-  "cd client && npm install --force",
-  "cd client && npm install @tailwindcss/postcss --save-dev"
+  "cd client && npm install --force"
 ]
 
 [phases.build]
 cmds = [
-  "cd client && npm run build"
+  "cd client && npm run build --force"
 ]
 
 [start]

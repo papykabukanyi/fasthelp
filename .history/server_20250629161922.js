@@ -1597,14 +1597,6 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
     }
 });
 
-// Catch-all handler for React Router (must be LAST route)
-if (NODE_ENV === 'production') {
-    app.get('*', (req, res) => {
-        console.log(`🔄 React Router fallback for: ${req.path}`);
-        res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-    });
-}
-
 // Additional Routes (root route already defined at top)
 app.get('/donor-signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'donor-signup.html'));
