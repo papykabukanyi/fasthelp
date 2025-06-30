@@ -66,19 +66,16 @@ if (process.env.RAILWAY_ENVIRONMENT) {
 
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
-    console.log('✅ Health check requested - responding immediately');
     res.status(200).send('OK');
 });
 
 // Ultra-simple ping endpoint
 app.get('/ping', (req, res) => {
-    console.log('✅ Ping requested - responding immediately');
     res.status(200).send('PONG');
 });
 
 // Simple test endpoint
 app.get('/test', (req, res) => {
-    console.log('✅ Test requested - responding immediately');
     res.status(200).send('WORKING');
 });
 
@@ -126,43 +123,28 @@ app.get('/', (req, res) => {
     // In production, serve the React build
     if (NODE_ENV === 'production') {
         const reactIndexPath = path.join(__dirname, 'client', 'dist', 'index.html');
-        console.log('🔍 Attempting to serve React build from:', reactIndexPath);
-        
         res.sendFile(reactIndexPath, (err) => {
             if (err) {
-                console.log('⚠️ React build not found, serving Railway success page');
-                res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Fast Help - Railway Success</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-        .success { color: green; font-size: 28px; margin: 20px 0; }
-        .links a { margin: 0 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 class="success">🚀 Fast Help - Railway Deployment Success!</h1>
-        <p>Your application is running on Railway!</p>
-        <div><a href="/health">Health Check</a><a href="/status">Status</a><a href="/admin.html">Admin</a></div>
-        <p>Server running on ${NODE_ENV} mode • ${new Date().toLocaleString()}</p>
-    </div>
-</body>
-</html>
-                `);
+                console.error('❌ Error serving React app:', err);
+                // Fallback to original index.html
+                res.sendFile(path.join(__dirname, 'public', 'index.html'), (fallbackErr) => {
+                    if (fallbackErr) {
+                        console.error('❌ Error serving fallback index.html:', fallbackErr);
+                        res.status(500).send('Error loading website');
+                    }
+                });
             } else {
-                console.log('✅ React build served successfully');
+                console.log('✅ Served React app successfully');
             }
         });
     } else {
-        // Development fallback
-        const publicIndexPath = path.join(__dirname, 'public', 'index.html');
-        res.sendFile(publicIndexPath, (err) => {
+        // In development, serve the original index.html
+        res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
             if (err) {
-                res.send('<h1>Fast Help Development Server</h1><p>Ready for development!</p>');
+                console.error('❌ Error serving index.html:', err);
+                res.status(500).send('Error loading website');
+            } else {
+                console.log('✅ Served index.html successfully');
             }
         });
     }

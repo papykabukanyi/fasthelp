@@ -135,20 +135,54 @@ app.get('/', (req, res) => {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Fast Help - Railway Success</title>
+    <title>Fast Help - Railway Deployment Success</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
-        .success { color: green; font-size: 28px; margin: 20px 0; }
-        .links a { margin: 0 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .success { color: green; font-size: 32px; margin: 20px 0; }
+        .info { color: #666; margin: 15px 0; font-size: 18px; }
+        .links { margin: 30px 0; }
+        .links a { margin: 0 10px; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .links a:hover { background: #0056b3; }
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+        .status-item { padding: 15px; background: #e8f5e8; border-radius: 6px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="success">🚀 Fast Help - Railway Deployment Success!</h1>
-        <p>Your application is running on Railway!</p>
-        <div><a href="/health">Health Check</a><a href="/status">Status</a><a href="/admin.html">Admin</a></div>
-        <p>Server running on ${NODE_ENV} mode • ${new Date().toLocaleString()}</p>
+        <h1 class="success">🚀 Fast Help - Railway Deployment Successful!</h1>
+        <p class="info">Your application is running perfectly on Railway!</p>
+        
+        <div class="status-grid">
+            <div class="status-item">
+                <strong>✅ Server Status:</strong><br>Running
+            </div>
+            <div class="status-item">
+                <strong>🌐 Environment:</strong><br>${NODE_ENV}
+            </div>
+            <div class="status-item">
+                <strong>🚄 Platform:</strong><br>Railway
+            </div>
+            <div class="status-item">
+                <strong>⏰ Started:</strong><br>${new Date().toLocaleString()}
+            </div>
+        </div>
+        
+        <div class="links">
+            <a href="/health">Health Check</a>
+            <a href="/status">Server Status</a>
+            <a href="/admin.html">Admin Panel</a>
+        </div>
+        
+        <p class="info">
+            <strong>🎉 Congratulations!</strong><br>
+            Your Fast Help application has been successfully deployed to Railway.<br>
+            All systems are operational and ready to serve users.
+        </p>
+        
+        <p style="font-size: 14px; color: #999; margin-top: 30px;">
+            Deployed on Railway • ${new Date().toISOString()}
+        </p>
     </div>
 </body>
 </html>
@@ -160,9 +194,35 @@ app.get('/', (req, res) => {
     } else {
         // Development fallback
         const publicIndexPath = path.join(__dirname, 'public', 'index.html');
+        console.log('🔍 Development mode - serving from:', publicIndexPath);
         res.sendFile(publicIndexPath, (err) => {
             if (err) {
+                console.log('⚠️ Development fallback failed, sending basic response');
                 res.send('<h1>Fast Help Development Server</h1><p>Ready for development!</p>');
+            }
+        });
+    }
+});
+                console.error('❌ Error serving React app:', err);
+                // Fallback to original index.html
+                res.sendFile(path.join(__dirname, 'public', 'index.html'), (fallbackErr) => {
+                    if (fallbackErr) {
+                        console.error('❌ Error serving fallback index.html:', fallbackErr);
+                        res.status(500).send('Error loading website');
+                    }
+                });
+            } else {
+                console.log('✅ Served React app successfully');
+            }
+        });
+    } else {
+        // In development, serve the original index.html
+        res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+            if (err) {
+                console.error('❌ Error serving index.html:', err);
+                res.status(500).send('Error loading website');
+            } else {
+                console.log('✅ Served index.html successfully');
             }
         });
     }

@@ -1,0 +1,16 @@
+{
+  "name": "fast-help-minimal",
+  "version": "1.0.0",
+  "description": "Fast Help - Minimal Railway Version",
+  "main": "server-minimal.js",
+  "scripts": {
+    "start": "node server-minimal.js",
+    "build": "cd client && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
