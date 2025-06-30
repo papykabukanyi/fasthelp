@@ -50,8 +50,6 @@ try {
     console.log('✅ express-rate-limit loaded');
 } catch (error) {
     console.error('❌ express-rate-limit failed to load:', error.message);
-    // Create a dummy rate limiter that does nothing
-    rateLimit = () => (req, res, next) => next();
 }
 
 let helmet;

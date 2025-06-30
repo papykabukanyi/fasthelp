@@ -50,8 +50,6 @@ try {
     console.log('✅ express-rate-limit loaded');
 } catch (error) {
     console.error('❌ express-rate-limit failed to load:', error.message);
-    // Create a dummy rate limiter that does nothing
-    rateLimit = () => (req, res, next) => next();
 }
 
 let helmet;
@@ -1916,32 +1914,6 @@ async function createDefaultAdmin() {
         log('error', 'Error creating default admin - continuing without admin user', { error: error.message });
     }
 }
-
-// Bulletproof catch-all route - handles any unmatched routes
-app.get('*', (req, res) => {
-    console.log(`🔄 CATCH-ALL ROUTE: ${req.path}`);
-    
-    // Try to serve React index.html for client-side routing
-    const reactIndex = path.join(__dirname, 'client', 'dist', 'index.html');
-    res.sendFile(reactIndex, (err) => {
-        if (err) {
-            // If React build doesn't exist, send simple response
-            res.send(`
-<!DOCTYPE html>
-<html>
-<head><title>Fast Help</title></head>
-<body style="font-family: Arial; text-align: center; margin: 50px;">
-    <h1>🚀 Fast Help - Route: ${req.path}</h1>
-    <p>This route is handled by the catch-all.</p>
-    <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Go Home</a>
-</body>
-</html>
-            `);
-        }
-    });
-});
-
-console.log('✅ CATCH-ALL ROUTE CONFIGURED');
 
 // Start server - bind to all interfaces for Railway
 console.log('🚨 =================================');

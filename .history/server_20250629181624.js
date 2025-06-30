@@ -50,8 +50,6 @@ try {
     console.log('✅ express-rate-limit loaded');
 } catch (error) {
     console.error('❌ express-rate-limit failed to load:', error.message);
-    // Create a dummy rate limiter that does nothing
-    rateLimit = () => (req, res, next) => next();
 }
 
 let helmet;
@@ -204,24 +202,6 @@ app.get('/text', (req, res) => {
 
 console.log('✅ BULLETPROOF ROUTES CONFIGURED');
 
-// Simple static file serving - no complex logic
-console.log('🔍 SETTING UP SIMPLE STATIC FILE SERVING...');
-try {
-    // Serve React build if it exists
-    app.use(express.static(path.join(__dirname, 'client', 'dist')));
-    console.log('✅ React build static files configured');
-} catch (error) {
-    console.log('⚠️ React build static files failed:', error.message);
-}
-
-try {
-    // Serve public files
-    app.use(express.static(path.join(__dirname, 'public')));
-    console.log('✅ Public static files configured');
-} catch (error) {
-    console.log('⚠️ Public static files failed:', error.message);
-}
-
 // Status endpoint for debugging (separate from main site)
 app.get('/status', (req, res) => {
     const timestamp = new Date().toISOString();
@@ -258,7 +238,55 @@ app.get('/status', (req, res) => {
     res.status(200).send(html);
 });
 
-// Old root route removed - using bulletproof version above
+// Main website root route - serve the React application
+app.get('/', (req, res) => {
+    console.log(`🏠 MAIN WEBSITE REQUESTED at ${new Date().toISOString()}`);
+    console.log(`📍 From: ${req.ip || req.connection.remoteAddress}`);
+    
+    // In production, serve the React build
+    if (NODE_ENV === 'production') {
+        const reactIndexPath = path.join(__dirname, 'client', 'dist', 'index.html');
+        console.log('🔍 Attempting to serve React build from:', reactIndexPath);
+        
+        res.sendFile(reactIndexPath, (err) => {
+            if (err) {
+                console.log('⚠️ React build not found, serving Railway success page');
+                res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fast Help - Railway Success</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .success { color: green; font-size: 28px; margin: 20px 0; }
+        .links a { margin: 0 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="success">🚀 Fast Help - Railway Deployment Success!</h1>
+        <p>Your application is running on Railway!</p>
+        <div><a href="/health">Health Check</a><a href="/status">Status</a><a href="/admin.html">Admin</a></div>
+        <p>Server running on ${NODE_ENV} mode • ${new Date().toLocaleString()}</p>
+    </div>
+</body>
+</html>
+                `);
+            } else {
+                console.log('✅ React build served successfully');
+            }
+        });
+    } else {
+        // Development fallback
+        const publicIndexPath = path.join(__dirname, 'public', 'index.html');
+        res.sendFile(publicIndexPath, (err) => {
+            if (err) {
+                res.send('<h1>Fast Help Development Server</h1><p>Ready for development!</p>');
+            }
+        });
+    }
+});
 
 // Request logging middleware for debugging
 app.use((req, res, next) => {
@@ -1916,32 +1944,6 @@ async function createDefaultAdmin() {
         log('error', 'Error creating default admin - continuing without admin user', { error: error.message });
     }
 }
-
-// Bulletproof catch-all route - handles any unmatched routes
-app.get('*', (req, res) => {
-    console.log(`🔄 CATCH-ALL ROUTE: ${req.path}`);
-    
-    // Try to serve React index.html for client-side routing
-    const reactIndex = path.join(__dirname, 'client', 'dist', 'index.html');
-    res.sendFile(reactIndex, (err) => {
-        if (err) {
-            // If React build doesn't exist, send simple response
-            res.send(`
-<!DOCTYPE html>
-<html>
-<head><title>Fast Help</title></head>
-<body style="font-family: Arial; text-align: center; margin: 50px;">
-    <h1>🚀 Fast Help - Route: ${req.path}</h1>
-    <p>This route is handled by the catch-all.</p>
-    <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Go Home</a>
-</body>
-</html>
-            `);
-        }
-    });
-});
-
-console.log('✅ CATCH-ALL ROUTE CONFIGURED');
 
 // Start server - bind to all interfaces for Railway
 console.log('🚨 =================================');
