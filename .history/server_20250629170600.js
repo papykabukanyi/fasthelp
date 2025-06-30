@@ -37,22 +37,6 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('Will listen on PORT:', PORT);
 console.log('Railway env vars:', Object.keys(process.env).filter(key => key.includes('RAILWAY')));
 
-// Railway-specific optimizations
-if (process.env.RAILWAY_ENVIRONMENT) {
-    console.log('🚄 RAILWAY ENVIRONMENT DETECTED');
-    console.log('🚄 Railway Service:', process.env.RAILWAY_SERVICE_NAME);
-    console.log('🚄 Railway Project:', process.env.RAILWAY_PROJECT_NAME);
-    console.log('🚄 Optimizing for Railway deployment...');
-    
-    // Reduce log verbosity in Railway
-    process.env.NODE_ENV = 'production';
-    
-    // Ensure immediate health check response
-    process.nextTick(() => {
-        console.log('🚄 Railway optimizations applied');
-    });
-}
-
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
@@ -145,20 +129,25 @@ app.use((req, res, next) => {
     next();
 });
 
-// Comprehensive request logging middleware (simplified for Railway)
+// Comprehensive request logging middleware
 app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
+    console.log(`📨 INCOMING REQUEST at ${timestamp}`);
+    console.log(`🌐 Method: ${req.method}`);
+    console.log(`📍 Path: ${req.path}`);
+    console.log(`🏠 Host: ${req.get('host')}`);
+    console.log(`🔄 User-Agent: ${req.get('user-agent')}`);
+    console.log(`📧 IP: ${req.ip || req.connection.remoteAddress}`);
+    console.log(`📦 Headers:`, JSON.stringify(req.headers, null, 2));
     
-    // Simplified logging for production
-    if (NODE_ENV === 'production') {
-        console.log(`${timestamp} ${req.method} ${req.path} - ${req.ip || req.connection.remoteAddress}`);
-    } else {
-        console.log(`� INCOMING REQUEST at ${timestamp}`);
-        console.log(`🌐 Method: ${req.method}`);
-        console.log(`� Path: ${req.path}`);
-        console.log(`🏠 Host: ${req.get('host')}`);
-        console.log(`� IP: ${req.ip || req.connection.remoteAddress}`);
-    }
+    // Log when response is sent
+    const originalSend = res.send;
+    res.send = function(data) {
+        console.log(`📤 SENDING RESPONSE for ${req.method} ${req.path} at ${new Date().toISOString()}`);
+        console.log(`📊 Status: ${res.statusCode}`);
+        console.log(`📝 Data length:`, typeof data === 'string' ? data.length : 'non-string');
+        return originalSend.call(this, data);
+    };
     
     next();
 });

@@ -37,22 +37,6 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('Will listen on PORT:', PORT);
 console.log('Railway env vars:', Object.keys(process.env).filter(key => key.includes('RAILWAY')));
 
-// Railway-specific optimizations
-if (process.env.RAILWAY_ENVIRONMENT) {
-    console.log('🚄 RAILWAY ENVIRONMENT DETECTED');
-    console.log('🚄 Railway Service:', process.env.RAILWAY_SERVICE_NAME);
-    console.log('🚄 Railway Project:', process.env.RAILWAY_PROJECT_NAME);
-    console.log('🚄 Optimizing for Railway deployment...');
-    
-    // Reduce log verbosity in Railway
-    process.env.NODE_ENV = 'production';
-    
-    // Ensure immediate health check response
-    process.nextTick(() => {
-        console.log('🚄 Railway optimizations applied');
-    });
-}
-
 // CRITICAL: Health check endpoints FIRST - before ANY middleware
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
