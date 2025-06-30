@@ -500,7 +500,7 @@ class RedisHelper {
             case 'createUser':
             case 'createDonation':
             case 'createPickup':
-                return { id: uuid.v4(), created: true, error: 'Redis unavailable - data not persisted' };
+                return { id: uuidv4(), created: true, error: 'Redis unavailable - data not persisted' };
             case 'getUsers':
             case 'getDonations':
                 return [];
@@ -524,7 +524,7 @@ class RedisHelper {
         }
         
         try {
-            const userId = uuid.v4();
+            const userId = uuidv4();
             const user = {
                 id: userId,
                 ...userData,
@@ -637,7 +637,7 @@ class RedisHelper {
     
     // Donations
     static async createDonation(donationData) {
-        const donationId = uuid.v4();
+        const donationId = uuidv4();
         const donation = {
             id: donationId,
             ...donationData,
@@ -757,7 +757,7 @@ class RedisHelper {
 
     // Pickups/Tracking
     static async createPickup(pickupData) {
-        const trackingId = uuid.v4();
+        const trackingId = uuidv4();
         const pickup = {
             id: trackingId,
             ...pickupData,
@@ -1768,7 +1768,7 @@ console.log('🔍 Railway environment variables:', Object.keys(process.env).filt
 
 // Check critical files exist
 const fs = require('fs');
-// path already required above
+const path = require('path');
 
 console.log('📁 FILE SYSTEM CHECK:');
 const checkFile = (filePath, description) => {

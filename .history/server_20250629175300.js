@@ -1,100 +1,29 @@
-console.log('🔍 LOADING DEPENDENCIES...');
 const express = require('express');
-console.log('✅ Express loaded');
 const path = require('path');
-console.log('✅ Path loaded');
-
-let redis;
-try {
-    redis = require('redis');
-    console.log('✅ Redis module loaded');
-} catch (error) {
-    console.error('❌ Redis module failed to load:', error.message);
-}
-
-let bcrypt;
-try {
-    bcrypt = require('bcryptjs');
-    console.log('✅ bcryptjs loaded');
-} catch (error) {
-    console.error('❌ bcryptjs failed to load:', error.message);
-}
-
-let jwt;
-try {
-    jwt = require('jsonwebtoken');
-    console.log('✅ jsonwebtoken loaded');
-} catch (error) {
-    console.error('❌ jsonwebtoken failed to load:', error.message);
-}
-
-let nodemailer;
-try {
-    nodemailer = require('nodemailer');
-    console.log('✅ nodemailer loaded');
-} catch (error) {
-    console.error('❌ nodemailer failed to load:', error.message);
-}
-
-let multer;
-try {
-    multer = require('multer');
-    console.log('✅ multer loaded');
-} catch (error) {
-    console.error('❌ multer failed to load:', error.message);
-}
-
-let rateLimit;
-try {
-    rateLimit = require('express-rate-limit');
-    console.log('✅ express-rate-limit loaded');
-} catch (error) {
-    console.error('❌ express-rate-limit failed to load:', error.message);
-}
-
-let helmet;
-try {
-    helmet = require('helmet');
-    console.log('✅ helmet loaded');
-} catch (error) {
-    console.error('❌ helmet failed to load:', error.message);
-}
-
-let cors;
-try {
-    cors = require('cors');
-    console.log('✅ cors loaded');
-} catch (error) {
-    console.error('❌ cors failed to load:', error.message);
-}
-
-let uuid;
-try {
-    const { v4: uuidv4 } = require('uuid');
-    uuid = { v4: uuidv4 };
-    console.log('✅ uuid loaded');
-} catch (error) {
-    console.error('❌ uuid failed to load:', error.message);
-}
+const redis = require('redis');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const multer = require('multer');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
 
 // Optional EmailTemplateHelper - graceful fallback if missing
-console.log('🔍 LOADING EMAIL TEMPLATE HELPER...');
 let EmailTemplateHelper;
 try {
     EmailTemplateHelper = require('./email-template-helper');
     console.log('✅ EmailTemplateHelper loaded successfully');
 } catch (error) {
     console.log('⚠️ EmailTemplateHelper not found, using fallback');
-    console.log('⚠️ Error details:', error.message);
     EmailTemplateHelper = {
         loadTemplate: () => '<html><body>Email template not available</body></html>',
         processTemplate: (template, data) => template
     };
 }
 
-console.log('🔍 LOADING ENVIRONMENT CONFIGURATION...');
 require('dotenv').config();
-console.log('✅ dotenv configuration loaded');
 
 const app = express();
 // Railway sets PORT environment variable - we must use it exactly as provided
@@ -500,7 +429,7 @@ class RedisHelper {
             case 'createUser':
             case 'createDonation':
             case 'createPickup':
-                return { id: uuid.v4(), created: true, error: 'Redis unavailable - data not persisted' };
+                return { id: uuidv4(), created: true, error: 'Redis unavailable - data not persisted' };
             case 'getUsers':
             case 'getDonations':
                 return [];
@@ -524,7 +453,7 @@ class RedisHelper {
         }
         
         try {
-            const userId = uuid.v4();
+            const userId = uuidv4();
             const user = {
                 id: userId,
                 ...userData,
@@ -637,7 +566,7 @@ class RedisHelper {
     
     // Donations
     static async createDonation(donationData) {
-        const donationId = uuid.v4();
+        const donationId = uuidv4();
         const donation = {
             id: donationId,
             ...donationData,
@@ -757,7 +686,7 @@ class RedisHelper {
 
     // Pickups/Tracking
     static async createPickup(pickupData) {
-        const trackingId = uuid.v4();
+        const trackingId = uuidv4();
         const pickup = {
             id: trackingId,
             ...pickupData,
@@ -1768,7 +1697,7 @@ console.log('🔍 Railway environment variables:', Object.keys(process.env).filt
 
 // Check critical files exist
 const fs = require('fs');
-// path already required above
+const path = require('path');
 
 console.log('📁 FILE SYSTEM CHECK:');
 const checkFile = (filePath, description) => {
@@ -1951,48 +1880,15 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 
 // Handle server startup errors
 server.on('error', (err) => {
-    console.log('🚨 =================================');
-    console.log('🚨 SERVER ERROR OCCURRED!');
-    console.log('🚨 =================================');
-    console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}`);
-    console.error(`❌ Error message: ${err.message}`);
-    console.error(`❌ Error code: ${err.code}`);
-    console.error(`❌ Error stack: ${err.stack}`);
-    console.error(`❌ Error details:`, err);
-    console.log('🚨 =================================');
-    
-    log('error', 'Server failed to start', { 
-        error: err.message, 
-        port: PORT, 
-        code: err.code,
-        stack: err.stack 
-    });
+    log('error', 'Server failed to start', { error: err.message, port: PORT });
+    console.error(`❌ SERVER FAILED TO START ON PORT ${PORT}:`, err.message);
     
     // Don't exit immediately - Railway might retry
     if (err.code === 'EADDRINUSE') {
         console.log(`⚠️ Port ${PORT} is in use - Railway will handle this`);
-        console.log(`⚠️ This usually means another process is using the port`);
-    } else if (err.code === 'EACCES') {
-        console.log(`⚠️ Permission denied for port ${PORT}`);
-        console.log(`⚠️ Railway should handle this automatically`);
     } else {
         console.log(`⚠️ Server error: ${err.message} - Railway will handle restart`);
     }
-    
-    console.log('🚨 =================================');
-});
-
-// Add more comprehensive error handling
-process.on('uncaughtException', (err) => {
-    console.error('🚨 UNCAUGHT EXCEPTION:', err);
-    console.error('🚨 Stack:', err.stack);
-    // Don't exit in production - log and continue
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('🚨 UNHANDLED REJECTION at:', promise);
-    console.error('🚨 Reason:', reason);
-    // Don't exit in production - log and continue
 });
 
 // Handle process termination gracefully

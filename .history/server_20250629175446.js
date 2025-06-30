@@ -1768,7 +1768,7 @@ console.log('🔍 Railway environment variables:', Object.keys(process.env).filt
 
 // Check critical files exist
 const fs = require('fs');
-// path already required above
+const path = require('path');
 
 console.log('📁 FILE SYSTEM CHECK:');
 const checkFile = (filePath, description) => {
